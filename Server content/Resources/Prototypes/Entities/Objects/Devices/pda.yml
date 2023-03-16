@@ -708,3 +708,18 @@
     borderColor: "#774705"
   - type: Icon
     state: pda-detective
+
+- type: entity
+  parent: BasePDA
+  id: BuilderPDA
+  name: builder PDA
+  description: Covered in building dust...
+  components:
+  - type: PDA
+    id: BuilderIDCard
+    state: pda-builder
+  - type: PDABorderColor
+    borderColor: "#c9e512"
+  - type: Icon
+    state: pda-builder
+    

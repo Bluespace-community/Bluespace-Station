@@ -1,0 +1,33 @@
+- type: job
+  id: Builder
+  name: job-name-builder
+  description: job-description-builder
+  playTimeTracker: JobBuilder
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Engineering
+      time: 20000
+  startingGear: StationEngineerGear
+  icon: "StationEngineer"
+  supervisors: job-supervisors-ce
+  access:
+  - Engineering
+  - Maintenance
+  - External
+  - Atmospherics
+
+- type: startingGear
+  id: StationEngineerGear
+  equipment:
+    head: ClothingHeadHatHardhatYellow
+    jumpsuit: ClothingUniformJumpsuitEngineering
+    back: ClothingBackpackEngineeringFilled
+    shoes: ClothingShoesBootsWork
+    outerClothing: ClothingOuterVestHazard
+    id: EngineerPDA
+    eyes: ClothingEyesGlassesMeson
+    belt: ClothingBeltUtilityFilled
+    ears: ClothingHeadsetEngineering
+  innerclothingskirt: ClothingUniformJumpskirtEngineering
+  satchel: ClothingBackpackSatchelEngineeringFilled
+  duffelbag: ClothingBackpackDuffelEngineeringFilled

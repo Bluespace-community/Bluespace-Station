@@ -573,3 +573,14 @@
   - type: Item
     heldPrefix: gold
     
+- type: entity
+  parent: IDCardStandard
+  id: BuilderIDCard
+  name: builder ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idstationengineer
+  - type: PresetIdCard
+    job: Builder
