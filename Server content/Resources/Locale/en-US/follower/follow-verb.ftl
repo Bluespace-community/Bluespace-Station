@@ -1,1 +1,0 @@
-﻿verb-follow-text = Follow

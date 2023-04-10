@@ -1,8 +1,0 @@
-- type: vendingMachineInventory
-  id: GeneDrobeInventory
-  startingInventory:
-    ClothingShoesColorWhite: 2
-    ClothingOuterCoatLab: 2
-    ClothingHandsGlovesLatex: 2
-    ClothingHeadsetMedical: 2
-    ClothingOuterWinterGen: 2
