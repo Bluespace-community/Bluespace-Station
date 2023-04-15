@@ -1,15 +1,11 @@
-﻿"Changes: Sprites":
-- '**/*.rsi/*.png'
+﻿"File: PNG/JPG":
+- '*.png/*.jpg'
 
-"Changes: Map":
-- 'Resources/Maps/*.yml'
-- 'Resources/Prototypes/Maps/*.yml'
+"File: MOV/MP4":
+- '*.mp4/*.mov'
 
-"Changes: UI":
-- '**/*.xaml*'
+"File: MP3":
+- '*.mp3'
 
-"Changes: Localization":
-- 'Resources/Locale/**/*.ftl'
-
-"No C#":
-- all: ["!**/*.cs"]
+"File: TXT":
+- '*.txt'
