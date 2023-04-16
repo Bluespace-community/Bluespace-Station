@@ -1,9 +1,0 @@
-ent-MobCivilian = гражданский
-    .desc = Жалкая кучка тайн.
-ent-MobSpirate = космопират
-    .desc = Яррр!
-ent-SalvageHumanCorpse = неизвестный человек
-    .desc = Мы едва тебя узнали.
-    .suffix = Мертвый
-ent-MobCluwne = существо
-    .desc = Полиморфированное несчастье.
