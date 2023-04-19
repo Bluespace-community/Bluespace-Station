@@ -1,9 +1,0 @@
-ent-BaseBigBox = картонная коробка
-    .desc = А? Просто коробка...
-ent-StealthBox = картонная коробка
-    .desc = Kept ya waiting, huh?
-    .suffix = Невидимость
-ent-GhostBox = призрачная коробка
-    .desc = Остерегайтесь!
-ent-Exclamation = восклицание
-    .desc = { "" }
