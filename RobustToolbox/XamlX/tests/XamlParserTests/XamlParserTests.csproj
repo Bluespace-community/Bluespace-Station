@@ -1,6 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFrameworks>netcoreapp2.1;net47</TargetFrameworks>
-    </PropertyGroup>
-    <Import Project="$(MSBuildThisFileDirectory)\..\Tests.Common.props"/>
-</Project>

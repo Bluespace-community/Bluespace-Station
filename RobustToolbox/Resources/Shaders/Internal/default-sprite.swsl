@@ -1,7 +1,0 @@
-
-
-void fragment() {
-    COLOR = zTexture(UV);
-}
-
-
