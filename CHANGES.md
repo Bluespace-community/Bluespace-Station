@@ -8,4 +8,3 @@ Main changes of this downstream:
 - Custom github rules (./.github/)
 - Sponsor rewards
 - Other roles
-- Custom alert levels
