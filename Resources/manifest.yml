@@ -1,0 +1,10 @@
+﻿defaultWindowTitle: Space Station 14 - Corvax Station [RU]
+windowIconSet: /Textures/Logo/icon-ru # Corvax-Theme
+splashLogo: /Textures/Logo/logo-ru.png # Corvax-Theme
+
+clientAssemblies:
+  - Content.Client
+  - Content.Shared
+  - Content.Shared.Database
+
+# PJB PLEASE
