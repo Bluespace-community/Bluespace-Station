@@ -1,0 +1,496 @@
+- type: entity
+  name: Annihilator
+  parent: BaseWeaponSubMachineGun
+  id: WeaponSubMachineGunAnnihilator
+  description: Kill! Kill! Kill! Uses annihilator ammo.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/annihilator.rsi
+    layers:
+    - state: base
+      map: ["enum.GunVisualLayers.Base"]
+    - state: mag-0
+      map: ["enum.GunVisualLayers.Mag"]
+  - type: Gun
+    fireRate: 10
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/atreides.ogg
+  - type: MagazineVisuals
+    magState: mag
+    steps: 1
+    zeroVisible: true
+  - type: Appearance
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: MagazinePistolAnnihilator
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolAnnihilator
+      gun_chamber:
+        name: Chamber
+        startingItem: AnnihilatorPistol
+        priority: 1
+        whitelist:
+          tags:
+            - AnnihilatorPistol
+
+- type: entity
+  id: MagazinePistolAnnihilator
+  name: annihilator magazine (.35 auto)
+  parent: BaseMagazinePistolSubMachineGun
+  components:
+  - type: BallisticAmmoProvider
+    capacity: 250
+    proto: AnnihilatorPistol
+    whitelist:
+      tags:
+        - AnnihilatorPistol
+    soundInsert:
+      path: /Audio/Weapons/Guns/MagIn/bullet_insert.ogg
+  - type: Sprite
+    netsync: false
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Pistol/pistol_mag.rsi
+    layers:
+    - state: base
+      map: ["enum.GunVisualLayers.Base"]
+    - state: mag-1
+      map: ["enum.GunVisualLayers.Mag"]
+
+- type: entity
+  id: AnnihilatorPistol
+  name: cartridge (.35 auto annihilator)
+  parent: BaseCartridgePistol
+  components:
+  - type: CartridgeAmmo
+    proto: AniPistol
+
+- type: entity
+  id: AniPistol
+  name: bullet (.35 auto annihilator)
+  parent: BaseBullet
+  noSpawn: true
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 32
+        Cellular: 10
+
+- type: playTimeTracker
+  id: JobBuilder
+
+- type: playTimeTracker
+  id: JobBlueshield
+
+############  Также в департамент вручную добавить builder и blueshield
+############  Также в иконках есть иконки к строителю и блюшилду
+############  Также в ПДА вложить КПК строителя и блюшилда
+############  Также в айди карты вложить карты строителя и блюшилда
+
+- type: job
+  id: Builder
+  name: job-name-builder
+  description: job-description-builder
+  playTimeTracker: JobBuilder
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Engineering
+      time: 21000 
+  startingGear: BuilderGear
+  icon: "Builder" 
+  supervisors: job-supervisors-ce
+  access:
+  - Maintenance
+  - Engineering
+  - External
+  - Atmospherics
+
+- type: startingGear
+  id: BuilderGear
+  equipment:
+    head: ClothingHeadHatHardhatYellow
+    jumpsuit: ClothingUniformJumpsuitBuilder 
+    back: ClothingBackpackBuilderFilled 
+    shoes: ClothingShoesBootsWork
+    outerClothing: ClothingOuterVestHazard
+    id: BuilderPDA 
+    eyes: ClothingEyesGlassesMeson
+    belt: ClothingBeltChiefEngineerFilled
+    ears: ClothingHeadsetEngineering
+
+- type: job
+  id: Blueshield
+  name: job-name-blueshield  
+  description: job-description-blueshield  
+  playTimeTracker: JobBlueshield  
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Engineering
+      time: 54000 
+    - !type:DepartmentTimeRequirement
+      department: Medical
+      time: 54000 
+    - !type:DepartmentTimeRequirement
+      department: Security
+      time: 54000 
+    - !type:OverallPlaytimeRequirement
+      time: 648000 
+    - !type:DepartmentTimeRequirement
+      department: Command
+      time: 54000
+  weight: 20
+  startingGear: BlueshieldGear
+  icon: "Blueshield" 
+  requireAdminNotify: true
+  joinNotifyCrew: true
+  supervisors: job-supervisors-centcom
+  canBeAntag: false
+  accessGroups:
+  - AllAccess
+
+- type: startingGear
+  id: BlueshieldGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitBlueshield 
+    back: ClothingBackpackBlueshieldFilled 
+    shoes: ClothingShoesColorBlack
+    head: ClothingHeadHatCaptain
+    eyes: ClothingEyesGlassesSunglasses
+    gloves: ClothingHandsGlovesBlueshield 
+    outerClothing: ClothingOuterVestArmorSec 
+    id: BlueshieldPDA 
+    ears: ClothingHeadsetBlueshield 
+  innerclothingskirt: ClothingUniformJumpskirtBlueshield
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitBuilder
+  name: builder jumpsuit
+  description: Covered in dust and construction foam.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/jumpsuits/builder.rsi
+  - type: Clothing
+    sprite: Bluespace-content/jumpsuits/builder.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitBlueshield
+  name: blue shield's jumpsuit
+  description: A suit strong enough to withstand hundreds of bullets while protecting the ward.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/Jumpsuits/blueshield.rsi
+  - type: Clothing
+    sprite: Bluespace-content/Jumpsuits/blueshield.rsi
+
+- type: entity
+  parent: ClothingBackpackBuilder
+  id: ClothingBackpackBuilderFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalEngineering
+      - id: RCD
+      - id: RCDAmmo
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackBuilder
+  name: builder backpack
+  description: All the materials will fit here.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/Backpacks/builder.rsi
+  - type: Storage
+    capacity: 250
+
+- type: entity
+  parent: ClothingBackpackBlueshield
+  id: ClothingBackpackBlueshieldFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvival
+      - id: Flash
+      - id: WeaponPistolMk58
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackBlueshield
+  name: blue shield's backpack
+  description: It's a special backpack made exclusively for Nanotrasen officers.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/backpacks/blueshield.rsi
+
+- type: entity
+  parent: BasePDA
+  id: BuilderPDA
+  name: builder PDA
+  description: It smells like construction dust.
+  components:
+  - type: PDA
+    id: BuilderIDCard
+    state: pda-builder
+  - type: Icon
+    state: pda-builder
+
+- type: entity
+  parent: BasePDA
+  id: BlueshieldPDA
+  name: blue shield PDA
+  description: Surprisingly no different from your PDA.
+  components:
+  - type: PDA
+    id: BlueshieldIDCard
+    state: pda-blueshield
+    penSlot:
+      startingItem: CyberPen
+      priority: -1
+      whitelist:
+        tags:
+        - Write
+  - type: PDABorderColor
+    borderColor: "#7C5D00"
+  - type: Icon
+    state: pda-blueshield
+
+- type: entity
+  parent: IDCardStandard
+  id: BlueshieldIDCard
+  name: blue shield ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idblueshield
+  - type: PresetIdCard
+    job: Blueshield
+
+- type: entity
+  parent: IDCardStandard
+  id: BuilderIDCard
+  name: builder ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idbuilder
+  - type: PresetIdCard
+    job: Builder
+
+- type: entity
+  parent: ClothingHandsBase
+  id: ClothingHandsGlovesBlueshield
+  name: blue shield gloves
+  description: Stylish Bodyguard Gloves.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/blueshield_gloves.rsi
+  - type: Clothing
+    sprite: Bluespace-content/blueshield_gloves.rsi
+  - type: GloveHeatResistance
+    heatResistance: 3000
+  - type: Insulated
+  - type: FingerprintMask
+
+- type: entity
+  id: LockerBlueshieldFilled
+  suffix: Filled
+  parent: LockerBlueshield
+  components:
+  - type: StorageFill
+    contents:
+      - id: PinpointerNuclear
+      - id: ClothingHeadHatCaptain
+      - id: ClothingHandsGlovesBlueshield
+      - id: ClothingOuterHardsuitBlue
+      - id: ClothingMaskGasCentcom
+      - id: WeaponDisabler
+      - id: CommsComputerCircuitboard
+      - id: ClothingHeadsetBlueshield
+      - id: DoorRemoteCommand
+      - id: ClothingNeckGoldmedal
+      - id: RubberStampBlueshield
+
+- type: entity
+  id: LockerBuilder
+  parent: LockerBase
+  name: builder's locker
+  components:
+  - type: Appearance
+    visuals:
+    - type: StorageVisualizer
+      state: bui
+      state_open: bui_open
+      state_closed: bui_door
+  - type: AccessReader
+    access: [ [ "Engineering" ] ]
+
+- type: entity
+  id: LockerBlueshield
+  parent: LockerBaseSecure
+  name: blue shield's locker
+  components:
+  - type: Appearance
+    visuals:
+    - type: StorageVisualizer
+      state: blueshield
+      state_open: blueshield_open
+      state_closed: blueshield_door
+  - type: AccessReader
+    access: [["Captain"]]
+
+- type: entity
+  id: LockerBuilderFilled
+  suffix: Filled
+  parent: LockerBuilder
+  components:
+  - type: StorageFill
+    contents:
+      - id: ClothingOuterHardsuitEngineering
+      - id: ClothingHandsGlovesColorYellow
+      - id: ClothingMaskGas
+      - id: AirTankFilled
+      - id: ClothingShoesBootsMagAdv
+      - id: RCDAmmo
+      - id: RCDAmmo
+      - id: SheetSteel
+      - id: SheetSteel
+      - id: SheetPlastic
+      - id: SheetPlastic
+      - id: SheetPlasteel
+      - id: SheetPlasteel
+
+- type: entity
+  parent: ClothingHeadsetAlt
+  id: ClothingHeadsetBlueshield
+  name: blue shield over-ear headset
+  components:
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyStationMaster
+      - EncryptionKeyCentCom
+  - type: Sprite
+    sprite: Bluespace-content\blueshield_headset.rsi
+  - type: Clothing
+    sprite: Bluespace-content\blueshield_headset.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpskirtBlueshield
+  name: blue shield's jumpskirt
+  description: A suit strong enough to withstand hundreds of bullets while protecting the ward.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/blueshield_jumpskirt.rsi
+  - type: Clothing
+    sprite: Bluespace-content/blueshield_jumpskirt.rsi
+
+- type: entity
+  parent: ClothingOuterHardsuitBase
+  id: ClothingOuterHardsuitBlue
+  name: blue shield's armored spacesuit
+  description: A formal armored spacesuit, made for the station's guardian.
+  components:
+  - type: Sprite
+    sprite: Bluespace-content/hardsuits/blue.rsi
+  - type: Clothing
+    sprite: Bluespace-content/hardsuits/blue.rsi
+  - type: PressureProtection
+    highPressureMultiplier: 0.02
+    lowPressureMultiplier: 1000
+  - type: ClothingSpeedModifier
+    walkModifier: 0.99
+    sprintModifier: 0.99
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.1
+        Slash: 0.11
+        Piercing: 0.01
+        Heat: 0.3
+        Radiation: 0
+        Caustic: 0.2
+  - type: ExplosionResistance
+    damageCoefficient: 0.5
+  - type: ToggleableClothing
+    clothingPrototype: ClothingHeadHelmetHardsuitBlue
+
+- type: reagent
+  id: GeneticKiller
+  name: reagent-name-geneticKiller
+  group: Medicine
+  desc: reagent-desc-geneticKiller
+  physicalDesc: reagent-physical-desc-geneticKiller
+  flavor: medicine
+  color: "#d2fffa"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:HealthChange
+        damage:
+          Cellular: 5
+      - !type:HealthChange
+        conditions:
+        - !type:ReagentThreshold
+          min: 30
+        damage:
+          types:
+            Asphyxiation: -2.5
+            Poison: -1
+      - !type:Jitter
+        conditions:
+        - !type:ReagentThreshold
+          min: 30
+
+- type: reaction
+  id: GeneticKiller
+  reactants:
+    Dylovene:
+      amount: 20
+    Plasma:
+      amount: 1
+      catalyst: true
+    Oxygen:
+      amount: 5
+  product:
+    GeneticKiller: 10
+
+- type: entity
+  name: tactical knife
+  parent: CombatKnife
+  id: TacticalKnife
+  description: A deadly knife intended for melee confrontations. Can use as a crowbar.
+  components:
+  - type: Tag
+    tags:
+    - Knife
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/combat_knife.rsi
+    size: 2
+    state: icon
+  - type: MeleeWeapon
+    attackRate: 1.5
+    damage:
+      types:
+        Slash: 20
+  - type: Item
+    size: 10
+    sprite: Objects/Weapons/Melee/combat_knife.rsi
+  - type: DisarmMalus
+    malus: 0.225
+  - type: ItemCooldown
+  - type: TilePrying
+  - type: Tool
+    qualities:
+      - Prying
+    useSound:
+      path: /Audio/Items/crowbar.ogg  

@@ -1,11 +1,35 @@
-"File: PNG/JPG":
-- '*.png/*.jpg'
+"File: Video":
+- '**/*.mp4'
+- '**/*.mov'
 
-"File: MOV/MP4":
-- '*.mp4/*.mov'
+"File: Audio":
+- '**/*.mp3'
+- '**/*.ogg'
+- 'Server content/Resources/Audio/**'
 
-"File: MP3":
-- '*.mp3'
+"File: Text":
+- '**/*.txt'
 
-"File: TXT":
-- '*.txt'
+"File: Textures":
+- 'Server content/Resources/Textures/**'
+- '**/meta.json'
+
+"File: github":
+- '.github/**'
+
+"File: Role":
+- 'Server content/Resources/Prototypes/Roles/**'
+
+"File: Localization":
+- '**/*.ftl'
+
+"File: Entity":
+- 'Server content/Resources/Prototypes/Entities/**'
+
+"File: PROJECT EXCLUSIVE":
+- 'Server content/**/mark'
+- 'Server content/**/Bluespace-content/**'
+
+"NOT TO MERGE":
+- '**/SECURITY.md'
+- '**/LICENSE.txt'

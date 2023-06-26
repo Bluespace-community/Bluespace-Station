@@ -2,8 +2,6 @@ using System;
 using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS8981
-
 namespace Lidgren.Network
 {
 	internal static unsafe class NetNativeSocket

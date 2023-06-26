@@ -1,1 +1,26 @@
-* @fedKotikeD
+#New CODEOWNER by maintainers
+
+#fedKotikeD part
+.github/** @fedKotikeD #github
+INFO/** @fedKotikeD #INFO
+*/Resources/Locale/Bluespace-content/** @fedKotikeD #project translate
+*/Resources/Textures/**/meta.json @fedKotikeD #meta
+*/Resources/Prototypes/Bluespace-content/** @fedKotikeD #project proto
+*/Resources/Prototypes/Entities/** @fedKotikeD #entities
+*/Resources/Textures/Bluespace-content/** @fedKotikeD #project textures
+*/CHANGES.md @fedKotikeD
+*/SECURITY.md @fedKotikeD
+*/LICENSE.txt @fedKotikeD
+
+#dopoi16-txt's part
+*/Resources/Textures/Bluespace-content/Clothing/** @dopoi16-txt #project textures clothing
+*/Resources/Audio/** @dopoi16-txt #music & sounds
+*/Resources/Maps/** @dopoi16-txt #maps
+*/Resources/Locale/** @dopoi16-txt #translate
+
+#both
+other/** @fedKotikeD @dopoi16-txt #other
+*/mark @fedKotikeD @dopoi16-txt #marks
+*/Bluespace-content/** @fedKotikeD @dopoi16-txt #all exclusive
+*/README.md @fedKotikeD @dopoi16-txt
+

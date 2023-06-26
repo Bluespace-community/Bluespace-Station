@@ -297,7 +297,7 @@ namespace Robust.Shared.GameObjects
         /// <param name="type">A trait or component type to check for.</param>
         /// <param name="component">Component of the specified type (if exists).</param>
         /// <returns>If the component existed in the entity.</returns>
-        bool TryGetComponent([NotNullWhen(true)] EntityUid uid, CompIdx type, [NotNullWhen(true)] out IComponent? component);
+        bool TryGetComponent(EntityUid uid, CompIdx type, [NotNullWhen(true)] out IComponent? component);
 
         /// <summary>
         ///     Returns the component of a specific type.
@@ -351,6 +351,11 @@ namespace Robust.Shared.GameObjects
         /// <param name="uid">Entity UID to look on.</param>
         /// <returns>All components that are assignable to the specified type.</returns>
         IEnumerable<T> GetComponents<T>(EntityUid uid);
+
+        /// <summary>
+        /// Returns the number of components on this entity.
+        /// </summary>
+        int ComponentCount(EntityUid uid);
 
         /// <summary>
         ///     Returns ALL networked components on an entity, including deleted ones.

@@ -385,8 +385,8 @@ public abstract partial class SharedPhysicsSystem
 
                     contacts.Add(contact);
                     contact.Flags |= ContactFlags.Island;
-                    var bodyA = contact.FixtureA!.Body;
-                    var bodyB = contact.FixtureB!.Body;
+                    var bodyA = contact.BodyA!;
+                    var bodyB = contact.BodyB!;
 
                     var other = bodyA == body ? bodyB : bodyA;
 
@@ -674,7 +674,7 @@ public abstract partial class SharedPhysicsSystem
                 else
                     linearVelocity += (gravity + body.Force * body.InvMass) * data.FrameTime;
 
-                angularVelocity += data.FrameTime * body.InvI * body.Torque;
+                angularVelocity += body.InvI * body.Torque * data.FrameTime;
 
                 linearVelocity *= Math.Clamp(1.0f - data.FrameTime * body.LinearDamping, 0.0f, 1.0f);
                 angularVelocity *= Math.Clamp(1.0f - data.FrameTime * body.AngularDamping, 0.0f, 1.0f);

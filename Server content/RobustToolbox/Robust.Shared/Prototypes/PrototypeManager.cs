@@ -7,6 +7,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Robust.Shared.Asynchronous;
 using Robust.Shared.ContentPack;
+using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.IoC.Exceptions;
 using Robust.Shared.Log;
@@ -192,7 +193,7 @@ namespace Robust.Shared.Prototypes
             return _kindPriorities[b].CompareTo(_kindPriorities[a]);
         }
 
-        protected void ReloadPrototypes(IEnumerable<ResourcePath> filePaths)
+        protected void ReloadPrototypes(IEnumerable<ResPath> filePaths)
         {
 #if TOOLS
             var changed = new Dictionary<Type, HashSet<string>>();

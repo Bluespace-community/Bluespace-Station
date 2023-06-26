@@ -61,3 +61,20 @@
       emergencyLightColor: DarkViolet
       forceEnableEmergencyLights: true
       shuttleTime: 1200
+    vinous:
+      announcement: alert-level-vinous-announcement
+      selectable: false
+      sound:
+        path: /Audio/Misc/delta.ogg
+      disableSelection: true
+      color: Maroon
+      emergencyLightColor: Maroon
+      forceEnableEmergencyLights: true
+      shuttleTime: 12000
+    brown:
+      annpuncement: alert-level-brown-announcement
+      selectable: false
+      sound:
+        path: /Audio/Bluespace-content/revolution.ogg
+      disableSelection: true
+      color: Brown

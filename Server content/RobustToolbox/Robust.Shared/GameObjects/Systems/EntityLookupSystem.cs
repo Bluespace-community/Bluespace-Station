@@ -1,4 +1,6 @@
-using Robust.Shared.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Robust.Shared.Containers;
 using Robust.Shared.IoC;
 using Robust.Shared.Log;
@@ -13,9 +15,6 @@ using Robust.Shared.Physics.Dynamics;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Robust.Shared.GameObjects
 {
@@ -52,6 +51,20 @@ namespace Robust.Shared.GameObjects
         Uncontained = Dynamic | Static | Sundries,
 
         StaticSundries = Static | Sundries,
+    }
+
+    /// <summary>
+    /// Raised on entities to try to get its WorldAABB.
+    /// </summary>
+    [ByRefEvent]
+    public record struct WorldAABBEvent
+    {
+        /// <summary>
+        /// If the event is not handled then <see cref="FixturesComponent"/> will be used.
+        /// </summary>
+        public bool Handled;
+
+        public Box2 AABB;
     }
 
     public sealed partial class EntityLookupSystem : EntitySystem
@@ -190,7 +203,7 @@ namespace Robust.Shared.GameObjects
             return treeXform.InvWorldMatrix.TransformBox(GetWorldAABB(entity, xform));
         }
 
-        internal void CreateProxies(TransformComponent xform, Fixture fixture)
+        internal void CreateProxies(EntityUid uid, TransformComponent xform, Fixture fixture, PhysicsComponent body)
         {
             if (!TryGetCurrentBroadphase(xform, out var broadphase))
                 return;
@@ -204,23 +217,23 @@ namespace Robust.Shared.GameObjects
 
             var (_, broadWorldRot, _, broadInvMatrix) = xformQuery.GetComponent(broadphase.Owner).GetWorldPositionRotationMatrixWithInv();
             var broadphaseTransform = new Transform(broadInvMatrix.Transform(mapTransform.Position), mapTransform.Quaternion2D.Angle - broadWorldRot);
-            var tree = fixture.Body.BodyType == BodyType.Static ? broadphase.StaticTree : broadphase.DynamicTree;
+            var tree = body.BodyType == BodyType.Static ? broadphase.StaticTree : broadphase.DynamicTree;
             DebugTools.Assert(fixture.ProxyCount == 0);
 
-            AddOrMoveProxies(fixture, tree, broadphaseTransform, mapTransform, physMap.MoveBuffer);
+            AddOrMoveProxies(uid, fixture, body, tree, broadphaseTransform, mapTransform, physMap.MoveBuffer);
         }
 
-        internal void DestroyProxies(Fixture fixture, TransformComponent xform, BroadphaseComponent broadphase, PhysicsMapComponent? physicsMap)
+        internal void DestroyProxies(EntityUid uid, Fixture fixture, TransformComponent xform, BroadphaseComponent broadphase, PhysicsMapComponent? physicsMap)
         {
             DebugTools.AssertNotNull(xform.Broadphase);
             DebugTools.Assert(xform.Broadphase!.Value.Uid == broadphase.Owner);
 
-            if (!xform.Broadphase.Value.CanCollide || xform.GridUid == xform.Owner)
+            if (!xform.Broadphase.Value.CanCollide || xform.GridUid == uid)
                 return;
 
             if (fixture.ProxyCount == 0)
             {
-                Logger.Warning($"Tried to destroy fixture {fixture.ID} on {ToPrettyString(fixture.Body.Owner)} that already has no proxies?");
+                Logger.Warning($"Tried to destroy fixture {fixture.ID} on {ToPrettyString(uid)} that already has no proxies?");
                 return;
             }
 
@@ -280,7 +293,7 @@ namespace Robust.Shared.GameObjects
 
             // Add to new broadphase
             if (body.CanCollide)
-                AddPhysicsTree(old.Uid, broadphase, xform, body, fixtures);
+                AddPhysicsTree(uid, old.Uid, broadphase, xform, body, fixtures);
             else
                 AddOrUpdateSundriesTree(old.Uid, broadphase, uid, xform, body.BodyType == BodyType.Static);
         }
@@ -308,7 +321,7 @@ namespace Robust.Shared.GameObjects
             fixture.Proxies = Array.Empty<FixtureProxy>();
         }
 
-        private void AddPhysicsTree(EntityUid broadUid, BroadphaseComponent broadphase, TransformComponent xform, PhysicsComponent body, FixturesComponent fixtures)
+        private void AddPhysicsTree(EntityUid uid, EntityUid broadUid, BroadphaseComponent broadphase, TransformComponent xform, PhysicsComponent body, FixturesComponent fixtures)
         {
             var xformQuery = GetEntityQuery<TransformComponent>();
             var broadphaseXform = xformQuery.GetComponent(broadUid);
@@ -319,10 +332,11 @@ namespace Robust.Shared.GameObjects
             if (!TryComp(broadphaseXform.MapUid, out PhysicsMapComponent? physMap))
                 throw new InvalidOperationException($"Physics Broadphase is missing physics map. {ToPrettyString(broadUid)}");
 
-            AddOrUpdatePhysicsTree(broadUid, broadphase, broadphaseXform, physMap, xform, body, fixtures, xformQuery);
+            AddOrUpdatePhysicsTree(uid, broadUid, broadphase, broadphaseXform, physMap, xform, body, fixtures, xformQuery);
         }
 
         private void AddOrUpdatePhysicsTree(
+            EntityUid uid,
             EntityUid broadUid,
             BroadphaseComponent broadphase,
             TransformComponent broadphaseXform,
@@ -348,19 +362,19 @@ namespace Robust.Shared.GameObjects
 
             foreach (var fixture in manager.Fixtures.Values)
             {
-                AddOrMoveProxies(fixture, tree, broadphaseTransform, mapTransform, physicsMap.MoveBuffer);
+                AddOrMoveProxies(uid, fixture, body, tree, broadphaseTransform, mapTransform, physicsMap.MoveBuffer);
             }
         }
 
         private void AddOrMoveProxies(
+            EntityUid uid,
             Fixture fixture,
+            PhysicsComponent body,
             IBroadPhase tree,
             Transform broadphaseTransform,
             Transform mapTransform,
             Dictionary<FixtureProxy, Box2> moveBuffer)
         {
-            DebugTools.Assert(fixture.Body.CanCollide);
-
             // Moving
             if (fixture.ProxyCount > 0)
             {
@@ -382,7 +396,7 @@ namespace Robust.Shared.GameObjects
             for (var i = 0; i < count; i++)
             {
                 var bounds = fixture.Shape.ComputeAABB(broadphaseTransform, i);
-                var proxy = new FixtureProxy(bounds, fixture, i);
+                var proxy = new FixtureProxy(uid, body, bounds, fixture, i);
                 proxy.ProxyId = tree.AddProxy(ref proxy);
                 proxy.AABB = bounds;
                 proxies[i] = proxy;
@@ -691,6 +705,13 @@ namespace Robust.Shared.GameObjects
             EntityQuery<FixturesComponent> fixturesQuery,
             bool recursive = true)
         {
+            if (xform.Broadphase != null && !xform.Broadphase.Value.IsValid())
+            {
+                // This entity was explicitly removed from lookup trees, possibly because it is in a container or has
+                // been detached by the PVS system. Do nothing.
+                return;
+            }
+
             if (!physicsQuery.TryGetComponent(uid, out var body) || !body.CanCollide)
             {
                 // TOOD optimize this. This function iterates UP through parents, while we are currently iterating down.
@@ -699,18 +720,20 @@ namespace Robust.Shared.GameObjects
                 // TODO BROADPHASE PARENTING this just assumes local = world
                 var relativeRotation = rotation - broadphaseXform.LocalRotation;
 
-                var aabb = GetAABBNoContainer(uid, coordinates.Position, relativeRotation);
+                var aabb = GetAABBNoContainer(uid, coordinates.Position, relativeRotation, fixturesQuery);
                 AddOrUpdateSundriesTree(broadUid, broadphase, uid, xform, body?.BodyType == BodyType.Static, aabb);
             }
             else
             {
-                AddOrUpdatePhysicsTree(broadUid, broadphase, broadphaseXform, physicsMap, xform, body, fixturesQuery.GetComponent(uid), xformQuery);
+                AddOrUpdatePhysicsTree(uid, broadUid, broadphase, broadphaseXform, physicsMap, xform, body, fixturesQuery.GetComponent(uid), xformQuery);
             }
 
             var childEnumerator = xform.ChildEnumerator;
             if (xform.ChildCount == 0 || !recursive)
                 return;
 
+            // TODO can this be removed?
+            // AFAIK the separate container check is redundant now that we check for an invalid broadphase at the beginning of this function.
             if (!contQuery.HasComponent(xform.Owner))
             {
                 while (childEnumerator.MoveNext(out var child))
@@ -910,15 +933,40 @@ namespace Robust.Shared.GameObjects
         /// </summary>
         public Box2 GetAABBNoContainer(EntityUid uid, Vector2 position, Angle angle)
         {
-            if (TryComp<ILookupWorldBox2Component>(uid, out var worldLookup))
+            return GetAABBNoContainer(uid, position, angle, GetEntityQuery<FixturesComponent>());
+        }
+
+        /// <summary>
+        /// Get the AABB of an entity with the supplied position and angle without considering containers.
+        /// </summary>
+        public Box2 GetAABBNoContainer(EntityUid uid, Vector2 position, Angle angle, EntityQuery<FixturesComponent> fixturesQuery)
+        {
+            if (fixturesQuery.TryGetComponent(uid, out var fixtures))
             {
                 var transform = new Transform(position, angle);
-                return worldLookup.GetAABB(transform);
+
+                var bounds = new Box2(transform.Position, transform.Position);
+                // TODO cache this to speed up entity lookups & tree updating
+                foreach (var fixture in fixtures.Fixtures.Values)
+                {
+                    for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                    {
+                        // TODO don't transform each fixture, just transform the final AABB
+                        var boundy = fixture.Shape.ComputeAABB(transform, i);
+                        bounds = bounds.Union(boundy);
+                    }
+                }
+
+                return bounds;
             }
-            else
+
+            var ev = new WorldAABBEvent()
             {
-                return new Box2(position, position);
-            }
+                AABB = new Box2(position, position),
+            };
+
+            RaiseLocalEvent(uid, ref ev);
+            return ev.AABB;
         }
 
         public Box2 GetWorldAABB(EntityUid uid, TransformComponent? xform = null)

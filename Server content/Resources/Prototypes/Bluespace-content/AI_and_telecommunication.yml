@@ -1,0 +1,96 @@
+- type: radioChannel
+  id: AI
+  name: ИИ
+  keycode: 'а' 
+  frequency: 7778
+  color: "#ffc0cb"
+
+- type: entity
+  parent: EncryptionKey
+  id: EncryptionKeyAI
+  name: AI encryption key
+  description: An encryption key for AI.
+  components:
+  - type: EncryptionKey
+    channels:
+    - AI
+    defaultChannel: AI
+  - type: Sprite
+    layers:
+    - state: crypt_gold
+    - state: cap_label
+
+- type: entity
+  id: IntercomAI
+  parent: Intercom
+  suffix: AI
+  components:
+  - type: RadioMicrophone
+    powerRequired: true
+    unobstructedRequired: true
+    listenRange: 2
+    supportedChannels:
+    - Common
+    - Command
+    - Engineering
+    - Medical
+    - Science
+    - Security
+    - Service
+    - Supply
+    - CentCom
+    - AI
+
+- type: entity
+  name: command radio
+  description: A handy handheld radio.
+  parent: RadioHandheld
+  id: RadioHandheldCommand
+  components:
+  - type: RadioMicrophone
+    broadcastChannel: Command
+  - type: RadioSpeaker
+    channels:
+    - Command
+
+- type: entity
+  name: AI radio
+  description: A handy handheld radio.
+  parent: RadioHandheld
+  id: RadioHandheldAI
+  components:
+  - type: RadioMicrophone
+    broadcastChannel: AI
+  - type: RadioSpeaker
+    channels:
+    - AI
+    
+- type: accessLevel
+  id: Telecomm
+  name: id-card-access-level-telecomm
+
+- type: entity
+  parent: AirlockCommand
+  id: AirlockTelecommLocked
+  suffix: Telecomm, Locked
+  components:
+  - type: AccessReader
+    access: [["Telecomm"]]
+  - type: Wires
+    LayoutId: AirlockCommand
+
+- type: entity
+  parent: AirlockMaint
+  id: AirlockMaintTelecommLocked
+  suffix: Telecomm, Locked
+  components:
+  - type: AccessReader
+    access: [["Telecomm"]]
+
+- type: entity
+  parent: AirlockCommandGlass
+  id: AirlockTelecommGlassLocked
+  suffix: Telecomm, Locked
+  components:
+  - type: AccessReader
+    access: [["Telecomm"]]
