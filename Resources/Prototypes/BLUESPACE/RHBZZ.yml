@@ -1,0 +1,249 @@
+#Связь
+
+- type: radioChannel
+  id: RHBZZCommunication
+  name: РХБЗЗ
+  keycode: 'э'
+  frequency: 9998
+  color: "#6a7039"
+
+- type: entity
+  parent: EncryptionKey
+  id: EncryptionKeyRHBZZ
+  name: ключ шифрования РХБЗЗ
+  description: Ключ шифрования для связи РХБЗЗ.
+  components:
+  - type: EncryptionKey
+    channels:
+    - RHBZZCommunication
+    defaultChannel: RHBZZCommunication
+  - type: Sprite
+    layers:
+    - state: crypt_blue
+    - state: nano_label
+
+- type: entity
+  parent: ClothingHeadset
+  id: ClothingHeadsetRHBZZ
+  name: гарнитура РХБЗЗ
+  description: Гарнитура для элитного подразделения РХБЗЗ.
+  components:
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyRHBZZ
+  - type: Sprite
+    sprite: Clothing/Ears/Headsets/RHBZZ.rsi
+  - type: Clothing
+    sprite: Clothing/Ears/Headsets/RHBZZ.rsi
+
+
+
+#Объекты:
+
+
+#обувь
+
+- type: entity
+  parent: ClothingShoesBaseButcherable
+  id: ClothingShoesRHBZZ
+  name: сапоги РХБЗЗ
+  description: Защищает ноги от биологической угрозы.
+  components:
+  - type: Sprite
+    sprite: Clothing/Shoes/Boots/RHBZZ.rsi
+    state: icon
+  - type: Clothing
+    sprite: Clothing/Shoes/Boots/RHBZZ.rsi
+  - type: Magboots
+    toggleAction: ActionToggleMagbootsAdvanced
+  - type: ClothingSpeedModifier
+    walkModifier: 1.1
+    sprintModifier: 1.3
+    enabled: false
+  - type: NoSlip
+  - type: FootstepModifier
+    footstepSoundCollection:
+      path: /Audio/Effects/Footsteps/RHBZZ.ogg
+      params:
+        volume: 3
+  - type: Tag
+    tags:
+    - FootstepSound
+
+
+#очки
+
+- type: entity
+  parent: ClothingEyesBase
+  id: ClothingEyesGlassesRHBZZ
+  name: очки РХБЗЗ
+  description: Профессиональные очки ДСО, предназначенный для лучшего обнаружения гуманоидов.
+  components:
+  - type: Sprite
+    sprite: Clothing/Eyes/Hud/RHBZZ.rsi
+  - type: Clothing
+    sprite: Clothing/Eyes/Hud/RHBZZ.rsi
+  - type: ShowSecurityIcons
+  - type: FlashImmunity
+  - type: EyeProtection
+
+
+#перчатки
+
+- type: entity
+  parent: ClothingHandsBase
+  id: ClothingHandsGlovesRHBZZ
+  name: резиновые перчатки РХБЗЗ
+  description: Высококачественные резиновые перчатки, предназначены для борьбы с биологическими угрозами любого уровня!
+  components:
+  - type: Sprite
+    sprite: Clothing/Hands/Gloves/RHBZZ.rsi
+  - type: Clothing
+    sprite: Clothing/Hands/Gloves/RHBZZ.rsi
+  - type: Insulated
+  - type: Fiber
+    fiberMaterial: fibers-rubber
+    fiberColor: fibers-yellow
+  - type: FingerprintMask
+
+
+#униформа
+
+#униформа специалиста РХБЗЗ
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitRHBZZSpecialist
+  name: униформа специалиста РХБЗЗ
+  description: Он изготовлен из специального волокна, обеспечивающего особую защиту от биологических опасностей. На нем есть нашивка специалиста РХБЗЗ.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/RHBZZ-jumpsuit.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/RHBZZ-jumpsuit.rsi
+
+#униформа коммандера РХБЗЗ
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitRHBZZCommander
+  name: униформа коммандера РХБЗЗ
+  description: Он изготовлен из специального волокна, обеспечивающего особую защиту от биологических опасностей. На нем есть нашивка коммандера РХБЗЗ.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/RHBZZ_leader-jumpsuit.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/RHBZZ_leader-jumpsuit.rsi
+
+
+#берет
+
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadHatBeretCommanderRHBZZ
+  name: берет коммандера РХБЗЗ
+  description: Выполненный в стилистике РХБЗЗ берет с эмблемой командирского звания.
+  components:
+  - type: Sprite
+    sprite: Clothing/Head/Hats/RHBZZ_leader-beret.rsi
+  - type: Clothing
+    sprite: Clothing/Head/Hats/RHBZZ_leader-beret.rsi
+  - type: Tag
+    tags:
+    - ClothMade
+    - HamsterWearable
+    - WhitelistChameleon
+
+
+#айди карта
+
+- type: entity
+  parent: CentcomIDCard
+  id: CentcomIDCardRHBZZ
+  name: айди карта РХБЗЗ
+  components:
+  - type: Sprite
+    layers:
+    - state: centcom
+  - type: Item
+    heldPrefix: blue
+  - type: IdCard
+    jobTitle: Centcom Agent
+
+
+#рюкзак РХБЗЗ
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackRHBZZ
+  name: полевой рюкзак РХБЗЗ
+  description: Рюкзак, побывавший во многих опасных местах, надежный боевой рюкзак.
+  components:
+    - type: Sprite
+      sprite: Clothing/Back/Backpacks/merc.rsi
+  - type: Storage
+    grid:
+    - 0,0,6,3
+    maxItemSize: Huge
+
+
+
+#Куклы
+
+- type: randomHumanoidSettings
+  id: RHBZZSpecialist
+  components:
+    - type: MindShield
+    - type: GhostRole
+      name: Специалист РХБЗЗ
+      description: Устраняйте биологическую угрозу любой ценой!
+    - type: GhostTakeoverAvailable
+    - type: Loadout
+      prototypes: [ RHBZZSpecialistGear ]
+    - type: RandomMetadata
+      nameSegments:
+      - NamesFirstMilitaryLeaderCorvax # Corvax-Localization
+      - NamesLastERTCallsign # Corvax-Localization
+
+- type: randomHumanoidSettings
+  id: RHBZZCommander
+  components:
+    - type: MindShield
+    - type: GhostRole
+      name: Коммандер Эскадрона Смерти
+      description: Ведите отряд специалистов к победе и устраните биологическую угрозу любой ценой!
+    - type: GhostTakeoverAvailable
+    - type: Loadout
+      prototypes: [ RHBZZCommanderGear ]
+    - type: RandomMetadata
+      nameSegments:
+      - NamesFirstMilitaryLeaderCorvax # Corvax-Localization
+      - NamesLastERTCallsign # Corvax-Localization
+
+- type: startingGear
+  id: RHBZZSpecialistGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitRHBZZSpecialist
+    back: ClothingBackpackRHBZZ
+    shoes: ClothingShoesRHBZZ
+    Neck: TacticKnife
+    eyes: ClothingEyesGlassesRHBZZ
+    gloves: ClothingHandsGlovesRHBZZ
+    outerClothing: ClothingOuterHardsuitCBURN
+    id: CentcomIDCardRHBZZ
+    ears: ClothingHeadsetRHBZZ
+
+- type: startingGear
+  id: RHBZZCommanderGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitRHBZZCommander
+    back: ClothingBackpackRHBZZ
+    shoes: ClothingShoesRHBZZ
+    Neck: TacticKnife
+    head: ClothingHeadHatBeretCommanderRHBZZ
+    eyes: ClothingEyesGlassesRHBZZ
+    gloves: ClothingHandsGlovesRHBZZ
+    outerClothing: ClothingOuterHardsuitCBURNLeader
+    id: CentcomIDCardRHBZZ
+    ears: ClothingHeadsetRHBZZ
