@@ -14,22 +14,23 @@
   icon: "JobIconResearchDirector"
   requireAdminNotify: true
   supervisors: job-supervisors-captain
-  #canBeAntag: false ЭКСПЕРИМЕНТ https://github.com/Bluespace-community/Bluespace-Station/pull/123
+  canBeAntag: false
   access:
   - Research
   - Command
   - Maintenance
   - ResearchDirector
+  - Brig
+  - Cryogenics
+  special:
+  - !type:AddImplantSpecial
+    implants: [ MindShieldImplant ]
+  - !type:AddComponentSpecial
+    components:
+      - type: CommandStaff
 
 - type: startingGear
   id: ResearchDirectorGear
   equipment:
-    jumpsuit: ClothingUniformJumpsuitResearchDirector
-    back: ClothingBackpackResearchDirectorFilled
-    shoes: ClothingShoesColorBrown
-    outerClothing: ClothingOuterCoatRnd
     id: RnDPDA
     ears: ClothingHeadsetRD
-  innerclothingskirt: ClothingUniformJumpskirtResearchDirector
-  satchel: ClothingBackpackSatchelResearchDirectorFilled
-  duffelbag: ClothingBackpackDuffelResearchDirectorFilled

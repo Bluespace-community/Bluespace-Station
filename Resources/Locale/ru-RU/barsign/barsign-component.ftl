@@ -15,7 +15,7 @@ barsign-prototype-description-singulo = Куда приходят люди, ко
 
 ## The Drunk Carp
 
-barsign-prototype-name-drunk-carp = Пьяный карп
+barsign-prototype-name-drunk-carp = Бухой карп
 barsign-prototype-description-drunk-carp = Не пейте плавая.
 
 ## Officer Beersky
@@ -96,7 +96,7 @@ barsign-prototype-description-wiggle-room = MoMMI маневрируют в та
 ## The Lightbulb
 
 barsign-prototype-name-the-lightbulb = Лампочка
-barsign-prototype-description-the-lightbulb = Кафе, популярное среди мотыльков и моффов. Однажды его закрыли на неделю после того, как барменша использовала нафталин для обработки своей запасной униформы.
+barsign-prototype-description-the-lightbulb = Кафе, популярное среди ниан и моффов. Однажды его закрыли на неделю после того, как барменша использовала нафталин для обработки своей запасной униформы.
 
 ## The Loose Goose
 
@@ -106,7 +106,7 @@ barsign-prototype-description-goose = Пей до рвоты и/или нару�
 ## The Engine Change
 
 barsign-prototype-name-enginechange = Замена двигателя
-barsign-prototype-description-enginechange = Все еще ожидаем.
+barsign-prototype-description-enginechange = Всё ещё ожидаем.
 
 ## 4 The Emprah
 
@@ -121,4 +121,4 @@ barsign-prototype-description-empbarsign = Что-то пошло совсем �
 
 ## SignOff
 
-barsign-prototype-description-sign-off = Этот знак, похоже, не включен.
+barsign-prototype-description-sign-off = Этот знак, похоже, не включён.

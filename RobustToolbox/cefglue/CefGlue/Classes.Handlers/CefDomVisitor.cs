@@ -5,14 +5,14 @@
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Xilium.CefGlue.Interop;
-    
+
     /// <summary>
     /// Interface to implement for visiting the DOM. The methods of this class will
     /// be called on the render process main thread.
     /// </summary>
     public abstract unsafe partial class CefDomVisitor
     {
-        private void visit(cef_domvisitor_t* self, cef_domdocument_t* document)
+        internal void visit(cef_domvisitor_t* self, cef_domdocument_t* document)
         {
             CheckSelf(self);
 
@@ -22,7 +22,7 @@
 
             m_document.Dispose();
         }
-        
+
         /// <summary>
         /// Method executed for visiting the DOM. The document object passed to this
         /// method represents a snapshot of the DOM at the time this method is

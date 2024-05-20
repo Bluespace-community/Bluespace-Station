@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefCookieVisitor
     {
-        private int visit(cef_cookie_visitor_t* self, cef_cookie_t* cookie, int count, int total, int* deleteCookie)
+        internal int visit(cef_cookie_visitor_t* self, cef_cookie_t* cookie, int count, int total, int* deleteCookie)
         {
             CheckSelf(self);
 

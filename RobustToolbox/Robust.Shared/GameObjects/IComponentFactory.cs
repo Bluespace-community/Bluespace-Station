@@ -51,8 +51,7 @@ namespace Robust.Shared.GameObjects
     /// <seealso cref="IComponent" />
     public interface IComponentFactory
     {
-        event Action<ComponentRegistration> ComponentAdded;
-        event Action<ComponentRegistration, CompIdx> ComponentReferenceAdded;
+        event Action<ComponentRegistration[]> ComponentsAdded;
         event Action<string> ComponentIgnoreAdded;
 
         /// <summary>
@@ -85,11 +84,15 @@ namespace Robust.Shared.GameObjects
         void RegisterClass<T>(bool overwrite = false) where T : IComponent, new();
 
         /// <summary>
+        /// Registers component types with the factory.
+        /// </summary>
+        void RegisterTypes(params Type[] type);
+
+        /// <summary>
         /// Registers a component name as being ignored.
         /// </summary>
-        /// <param name="name">The name to be ignored.</param>
-        /// <param name="overwrite">Whether to override existing settings instead of throwing an exception in the case of duplicates.</param>
-        void RegisterIgnore(string name, bool overwrite = false);
+        /// <param name="names">The names to be ignored.</param>
+        void RegisterIgnore(params string[] names);
 
         /// <summary>
         /// Disables throwing on missing components. Missing components will instead be treated as ignored.
@@ -156,7 +159,10 @@ namespace Robust.Shared.GameObjects
         /// </exception>
         [Pure]
         string GetComponentName(Type componentType);
-        
+
+        [Pure]
+        string GetComponentName<T>() where T : IComponent, new();
+
         /// <summary>
         ///     Gets the name of a component, throwing an exception if it does not exist.
         /// </summary>
@@ -271,6 +277,7 @@ namespace Robust.Shared.GameObjects
         /// </summary>
         void DoAutoRegistrations();
 
+        IEnumerable<ComponentRegistration> GetAllRegistrations();
         IEnumerable<CompIdx> GetAllRefTypes();
         void GenerateNetIds();
 

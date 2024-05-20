@@ -1,19 +1,28 @@
 using System.Numerics;
 using Content.Client.Chat.Managers;
+using Content.Shared.CCVar;
+using Content.Shared.Chat;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client.Chat.UI
 {
     public abstract class SpeechBubble : Control
     {
+        [Dependency] private readonly IEyeManager _eyeManager = default!;
+        [Dependency] private readonly IEntityManager _entityManager = default!;
+        [Dependency] protected readonly IConfigurationManager ConfigManager = default!;
+
         public enum SpeechType : byte
         {
             Emote,
             Say,
-            Whisper
+            Whisper,
+            Looc
         }
 
         /// <summary>
@@ -32,11 +41,12 @@ namespace Content.Client.Chat.UI
         /// </summary>
         private const float EntityVerticalOffset = 0.5f;
 
-        private readonly IEyeManager _eyeManager;
+        /// <summary>
+        ///     The default maximum width for speech bubbles.
+        /// </summary>
+        public const float SpeechMaxWidth = 256;
+
         private readonly EntityUid _senderEntity;
-        private readonly IChatManager _chatManager;
-        private readonly IEntityManager _entityManager;
-        private readonly SharedTransformSystem _transform;
 
         private float _timeLeft = TotalTime;
 
@@ -48,48 +58,36 @@ namespace Content.Client.Chat.UI
         // man down
         public event Action<EntityUid, SpeechBubble>? OnDied;
 
-        public static SpeechBubble CreateSpeechBubble(SpeechType type,
-            string text,
-            EntityUid senderEntity,
-            IEyeManager eyeManager,
-            IChatManager chatManager,
-            IEntityManager entityManager,
-            SharedTransformSystem transform)
+        public static SpeechBubble CreateSpeechBubble(SpeechType type, ChatMessage message, EntityUid senderEntity)
         {
             switch (type)
             {
                 case SpeechType.Emote:
-                    return new TextSpeechBubble(text, senderEntity, eyeManager, chatManager, entityManager, transform, "emoteBox");
+                    return new TextSpeechBubble(message, senderEntity, "emoteBox");
 
                 case SpeechType.Say:
-                    return new TextSpeechBubble(text, senderEntity, eyeManager, chatManager, entityManager, transform, "sayBox");
+                    return new FancyTextSpeechBubble(message, senderEntity, "sayBox");
 
                 case SpeechType.Whisper:
-                    return new TextSpeechBubble(text, senderEntity, eyeManager, chatManager, entityManager, transform, "whisperBox");
+                    return new FancyTextSpeechBubble(message, senderEntity, "whisperBox");
+
+                case SpeechType.Looc:
+                    return new TextSpeechBubble(message, senderEntity, "emoteBox", Color.FromHex("#48d1cc"));
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        public SpeechBubble(string text,
-            EntityUid senderEntity,
-            IEyeManager eyeManager,
-            IChatManager chatManager,
-            IEntityManager entityManager,
-            SharedTransformSystem transform,
-            string speechStyleClass)
+        public SpeechBubble(ChatMessage message, EntityUid senderEntity, string speechStyleClass, Color? fontColor = null)
         {
-            _chatManager = chatManager;
+            IoCManager.InjectDependencies(this);
             _senderEntity = senderEntity;
-            _eyeManager = eyeManager;
-            _entityManager = entityManager;
-            _transform = transform;
 
             // Use text clipping so new messages don't overlap old ones being pushed up.
             RectClipContent = true;
 
-            var bubble = BuildBubble(text, speechStyleClass);
+            var bubble = BuildBubble(message, speechStyleClass, fontColor);
 
             AddChild(bubble);
 
@@ -100,7 +98,7 @@ namespace Content.Client.Chat.UI
             _verticalOffsetAchieved = -ContentSize.Y;
         }
 
-        protected abstract Control BuildBubble(string text, string speechStyleClass);
+        protected abstract Control BuildBubble(ChatMessage message, string speechStyleClass, Color? fontColor = null);
 
         protected override void FrameUpdate(FrameEventArgs args)
         {
@@ -142,7 +140,7 @@ namespace Content.Client.Chat.UI
             }
 
             var offset = (-_eyeManager.CurrentEye.Rotation).ToWorldVec() * -EntityVerticalOffset;
-            var worldPos = _transform.GetWorldPosition(xform) + offset;
+            var worldPos = xform.WorldPosition + offset;
 
             var lowerCenter = _eyeManager.WorldToScreen(worldPos) / UIScale;
             var screenPos = lowerCenter - new Vector2(ContentSize.X / 2, ContentSize.Y + _verticalOffsetAchieved);
@@ -174,34 +172,117 @@ namespace Content.Client.Chat.UI
                 _timeLeft = FadeTime;
             }
         }
+
+        protected FormattedMessage FormatSpeech(string message, Color? fontColor = null)
+        {
+            var msg = new FormattedMessage();
+            if (fontColor != null)
+                msg.PushColor(fontColor.Value);
+            msg.AddMarkup(message);
+            return msg;
+        }
+
+        protected FormattedMessage ExtractAndFormatSpeechSubstring(ChatMessage message, string tag, Color? fontColor = null)
+        {
+            return FormatSpeech(SharedChatSystem.GetStringInsideTag(message, tag), fontColor);
+        }
+
     }
 
     public sealed class TextSpeechBubble : SpeechBubble
     {
-        public TextSpeechBubble(string text,
-            EntityUid senderEntity,
-            IEyeManager eyeManager,
-            IChatManager chatManager,
-            IEntityManager entityManager,
-            SharedTransformSystem transform,
-            string speechStyleClass)
-            : base(text, senderEntity, eyeManager, chatManager, entityManager, transform, speechStyleClass)
+        public TextSpeechBubble(ChatMessage message, EntityUid senderEntity, string speechStyleClass, Color? fontColor = null)
+            : base(message, senderEntity, speechStyleClass, fontColor)
         {
         }
 
-        protected override Control BuildBubble(string text, string speechStyleClass)
+        protected override Control BuildBubble(ChatMessage message, string speechStyleClass, Color? fontColor = null)
         {
             var label = new RichTextLabel
             {
-                MaxWidth = 256,
+                MaxWidth = SpeechMaxWidth,
             };
-            label.SetMessage(text);
+
+            label.SetMessage(FormatSpeech(message.WrappedMessage, fontColor));
 
             var panel = new PanelContainer
             {
                 StyleClasses = { "speechBox", speechStyleClass },
                 Children = { label },
                 ModulateSelfOverride = Color.White.WithAlpha(0.75f)
+            };
+
+            return panel;
+        }
+    }
+
+    public sealed class FancyTextSpeechBubble : SpeechBubble
+    {
+
+        public FancyTextSpeechBubble(ChatMessage message, EntityUid senderEntity, string speechStyleClass, Color? fontColor = null)
+            : base(message, senderEntity, speechStyleClass, fontColor)
+        {
+        }
+
+        protected override Control BuildBubble(ChatMessage message, string speechStyleClass, Color? fontColor = null)
+        {
+            if (!ConfigManager.GetCVar(CCVars.ChatEnableFancyBubbles))
+            {
+                var label = new RichTextLabel
+                {
+                    MaxWidth = SpeechMaxWidth
+                };
+
+                label.SetMessage(ExtractAndFormatSpeechSubstring(message, "BubbleContent", fontColor));
+
+                var unfanciedPanel = new PanelContainer
+                {
+                    StyleClasses = { "speechBox", speechStyleClass },
+                    Children = { label },
+                    ModulateSelfOverride = Color.White.WithAlpha(0.75f)
+                };
+                return unfanciedPanel;
+            }
+
+            var bubbleHeader = new RichTextLabel
+            {
+                Margin = new Thickness(1, 1, 1, 1)
+            };
+
+            var bubbleContent = new RichTextLabel
+            {
+                MaxWidth = SpeechMaxWidth,
+                Margin = new Thickness(2, 6, 2, 2),
+                StyleClasses = { "bubbleContent" }
+            };
+
+            //We'll be honest. *Yes* this is hacky. Doing this in a cleaner way would require a bottom-up refactor of how saycode handles sending chat messages. -Myr
+            bubbleHeader.SetMessage(ExtractAndFormatSpeechSubstring(message, "BubbleHeader", fontColor));
+            bubbleContent.SetMessage(ExtractAndFormatSpeechSubstring(message, "BubbleContent", fontColor));
+
+            //As for below: Some day this could probably be converted to xaml. But that is not today. -Myr
+            var mainPanel = new PanelContainer
+            {
+                StyleClasses = { "speechBox", speechStyleClass },
+                Children = { bubbleContent },
+                ModulateSelfOverride = Color.White.WithAlpha(0.75f),
+                HorizontalAlignment = HAlignment.Center,
+                VerticalAlignment = VAlignment.Bottom,
+                Margin = new Thickness(4, 14, 4, 2)
+            };
+
+            var headerPanel = new PanelContainer
+            {
+                StyleClasses = { "speechBox", speechStyleClass },
+                Children = { bubbleHeader },
+                ModulateSelfOverride = Color.White.WithAlpha(ConfigManager.GetCVar(CCVars.ChatFancyNameBackground) ? 0.75f : 0f),
+                HorizontalAlignment = HAlignment.Center,
+                VerticalAlignment = VAlignment.Top
+            };
+
+            var panel = new PanelContainer
+            {
+                Children = { mainPanel, headerPanel }
             };
 
             return panel;

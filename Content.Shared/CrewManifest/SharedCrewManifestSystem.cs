@@ -1,4 +1,5 @@
 using Content.Shared.Eui;
+using NetSerializer;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.CrewManifest;
@@ -11,9 +12,9 @@ namespace Content.Shared.CrewManifest;
 [Serializable, NetSerializable]
 public sealed class RequestCrewManifestMessage : EntityEventArgs
 {
-    public EntityUid Id { get; }
+    public NetEntity Id { get; }
 
-    public RequestCrewManifestMessage(EntityUid id)
+    public RequestCrewManifestMessage(NetEntity id)
     {
         Id = id;
     }
@@ -39,7 +40,7 @@ public sealed class CrewManifestEntries
     ///     Entries in the crew manifest. Goes by department ID.
     /// </summary>
     // public Dictionary<string, List<CrewManifestEntry>> Entries = new();
-    public List<CrewManifestEntry> Entries = new();
+    public CrewManifestEntry[] Entries = Array.Empty<CrewManifestEntry>();
 }
 
 [Serializable, NetSerializable]

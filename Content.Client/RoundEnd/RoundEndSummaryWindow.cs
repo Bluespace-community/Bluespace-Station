@@ -2,7 +2,6 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Message;
 using Content.Shared.GameTicking;
-using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Utility;
@@ -37,7 +36,7 @@ namespace Content.Client.RoundEnd
 
             Contents.AddChild(roundEndTabs);
 
-            OpenCentered();
+            OpenCenteredRight();
             MoveToFront();
         }
 
@@ -125,17 +124,15 @@ namespace Content.Client.RoundEnd
                     VerticalExpand = true,
                 };
 
-                if (_entityManager.HasComponent<SpriteComponent>(playerInfo.PlayerEntityUid))
+                if (playerInfo.PlayerNetEntity != null)
                 {
-                    var spriteView = new SpriteView
-                    {
-                        OverrideDirection = Direction.South,
-                        VerticalAlignment = VAlignment.Center,
-                        SetSize = new Vector2(32, 32),
-                        VerticalExpand = true,
-                    };
-                    spriteView.SetEntity(playerInfo.PlayerEntityUid);
-                    hBox.AddChild(spriteView);
+                    hBox.AddChild(new SpriteView(playerInfo.PlayerNetEntity.Value, _entityManager)
+                        {
+                            OverrideDirection = Direction.South,
+                            VerticalAlignment = VAlignment.Center,
+                            SetSize = new Vector2(32, 32),
+                            VerticalExpand = true,
+                        });
                 }
 
                 if (playerInfo.PlayerICName != null)

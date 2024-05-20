@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Robust.Shared.Map;
@@ -21,6 +20,12 @@ public partial interface IEntityManager
     /// TryGet version of <see cref="GetEntity"/>
     /// </summary>
     public bool TryGetEntity(NetEntity? nEntity, [NotNullWhen(true)] out EntityUid? entity);
+
+    /// <summary>
+    /// Tries to returns the corresponding local <see cref="EntityUid"/> along with the metdata component.
+    /// </summary>
+    public bool TryGetEntityData(NetEntity nEntity, [NotNullWhen(true)] out EntityUid? entity,
+        [NotNullWhen(true)] out MetaDataComponent? meta);
 
     /// <summary>
     /// TryGet version of <see cref="GetNetEntity"/>
@@ -102,6 +107,16 @@ public partial interface IEntityManager
     EntityUid?[] GetEntityArray(NetEntity?[] netEntities);
 
     /// <summary>
+    /// Dictionary version of <see cref="GetEntity"/>
+    /// </summary>
+    Dictionary<EntityUid, T> GetEntityDictionary<T>(Dictionary<NetEntity, T> netEntities);
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetEntity"/>
+    /// </summary>
+    Dictionary<T, EntityUid> GetEntityDictionary<T>(Dictionary<T, NetEntity> netEntities) where T : notnull;
+
+    /// <summary>
     /// HashSet version of <see cref="GetNetEntity"/>
     /// </summary>
     public HashSet<NetEntity> GetNetEntitySet(HashSet<EntityUid> entities);
@@ -114,6 +129,11 @@ public partial interface IEntityManager
     /// <summary>
     /// List version of <see cref="GetNetEntity"/>
     /// </summary>
+    List<NetEntity> GetNetEntityList(IReadOnlyList<EntityUid> entities);
+
+    /// <summary>
+    /// List version of <see cref="GetNetEntity"/>
+    /// </summary>
     public List<NetEntity> GetNetEntityList(ICollection<EntityUid> entities);
 
     /// <summary>
@@ -122,14 +142,39 @@ public partial interface IEntityManager
     public List<NetEntity?> GetNetEntityList(List<EntityUid?> entities);
 
     /// <summary>
-    /// List version of <see cref="GetNetEntity"/>
+    /// Array version of <see cref="GetNetEntity"/>
     /// </summary>
     NetEntity[] GetNetEntityArray(EntityUid[] entities);
 
     /// <summary>
-    /// List version of <see cref="GetNetEntity"/>
+    /// Array version of <see cref="GetNetEntity"/>
     /// </summary>
     NetEntity?[] GetNetEntityArray(EntityUid?[] entities);
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetNetEntity"/>
+    /// </summary>
+    Dictionary<NetEntity, T> GetNetEntityDictionary<T>(Dictionary<EntityUid, T> entities);
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetNetEntity"/>
+    /// </summary>
+    Dictionary<T, NetEntity> GetNetEntityDictionary<T>(Dictionary<T, EntityUid> entities) where T : notnull;
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetNetEntity"/>
+    /// </summary>
+    Dictionary<T, NetEntity?> GetNetEntityDictionary<T>(Dictionary<T, EntityUid?> entities) where T : notnull;
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetNetEntity"/>
+    /// </summary>
+    Dictionary<NetEntity, NetEntity> GetNetEntityDictionary(Dictionary<EntityUid, EntityUid> entities);
+
+    /// <summary>
+    /// Dictionary version of <see cref="GetNetEntity"/>
+    /// </summary>
+    Dictionary<NetEntity, NetEntity?> GetNetEntityDictionary(Dictionary<EntityUid, EntityUid?> entities);
 
     /// <summary>
     /// Returns the corresponding <see cref="NetCoordinates"/> for the specified local coordinates.
@@ -172,6 +217,27 @@ public partial interface IEntityManager
 
     public List<EntityUid> EnsureEntityList<T>(List<NetEntity> netEntities, EntityUid callerEntity);
 
+    void EnsureEntityList<T>(List<NetEntity> netEntities, EntityUid callerEntity, List<EntityUid> entities);
+
+    void EnsureEntityDictionary<TComp, TValue>(Dictionary<NetEntity, TValue> netEntities, EntityUid callerEntity,
+        Dictionary<EntityUid, TValue> entities);
+
+    void EnsureEntityDictionaryNullableValue<TComp, TValue>(Dictionary<NetEntity, TValue?> netEntities,
+        EntityUid callerEntity,
+        Dictionary<EntityUid, TValue?> entities);
+
+    void EnsureEntityDictionary<TComp, TKey>(Dictionary<TKey, NetEntity> netEntities, EntityUid callerEntity,
+        Dictionary<TKey, EntityUid> entities) where TKey : notnull;
+
+    void EnsureEntityDictionary<TComp, TKey>(Dictionary<TKey, NetEntity?> netEntities, EntityUid callerEntity,
+        Dictionary<TKey, EntityUid?> entities) where TKey : notnull;
+
+    void EnsureEntityDictionary<TComp>(Dictionary<NetEntity, NetEntity> netEntities, EntityUid callerEntity,
+        Dictionary<EntityUid, EntityUid> entities);
+
+    void EnsureEntityDictionary<TComp>(Dictionary<NetEntity, NetEntity?> netEntities, EntityUid callerEntity,
+        Dictionary<EntityUid, EntityUid?> entities);
+
     public List<EntityCoordinates> GetEntityList(ICollection<NetCoordinates> netEntities);
 
     public List<EntityCoordinates?> GetEntityList(List<NetCoordinates?> netEntities);
@@ -191,4 +257,10 @@ public partial interface IEntityManager
     public NetCoordinates[] GetNetCoordinatesArray(EntityCoordinates[] entities);
 
     public NetCoordinates?[] GetNetCoordinatesArray(EntityCoordinates?[] entities);
+
+    /// <summary>
+    /// Returns the corresponding local <see cref="EntityUid"/> along with the metdata component.
+    /// throws an exception if the net entity does not exist.
+    /// </summary>
+    (EntityUid, MetaDataComponent) GetEntityData(NetEntity nEntity);
 }

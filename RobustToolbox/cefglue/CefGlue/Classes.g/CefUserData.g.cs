@@ -37,23 +37,9 @@ namespace Xilium.CefGlue
             return value;
         }
         
-        private cef_user_data_t.add_ref_delegate _ds0;
-        private cef_user_data_t.release_delegate _ds1;
-        private cef_user_data_t.has_one_ref_delegate _ds2;
-        private cef_user_data_t.has_at_least_one_ref_delegate _ds3;
-        
         protected CefUserData()
         {
-            _self = cef_user_data_t.Alloc();
-        
-            _ds0 = new cef_user_data_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_user_data_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_user_data_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_user_data_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
+            _self = cef_user_data_t.Alloc(this);
         }
         
         ~CefUserData()
@@ -70,7 +56,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_user_data_t* self)
+        internal void add_ref(cef_user_data_t* self)
         {
             lock (SyncRoot)
             {
@@ -82,7 +68,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_user_data_t* self)
+        internal int release(cef_user_data_t* self)
         {
             lock (SyncRoot)
             {
@@ -96,12 +82,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_user_data_t* self)
+        internal int has_one_ref(cef_user_data_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_user_data_t* self)
+        internal int has_at_least_one_ref(cef_user_data_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

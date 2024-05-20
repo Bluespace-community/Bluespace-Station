@@ -58,7 +58,6 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.ActionBlocking
 
                 var cuffableSys = entityManager.System<CuffableSystem>();
                 var xformSys = entityManager.System<SharedTransformSystem>();
-                var xformQuery = entityManager.GetEntityQuery<TransformComponent>();
 
                 // Spawn the entities
                 human = entityManager.SpawnEntity("HumanHandcuffDummy", coordinates);
@@ -66,8 +65,8 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.ActionBlocking
                 cuffs = entityManager.SpawnEntity("HandcuffsDummy", coordinates);
                 secondCuffs = entityManager.SpawnEntity("HandcuffsDummy", coordinates);
 
-                var coords = xformSys.GetWorldPosition(otherHuman, xformQuery);
-                xformSys.SetWorldPosition(human, coords, xformQuery);
+                var coords = xformSys.GetWorldPosition(otherHuman);
+                xformSys.SetWorldPosition(human, coords);
 
                 // Test for components existing
                 Assert.Multiple(() =>
@@ -84,8 +83,8 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.ActionBlocking
                 Assert.That(cuffed.CuffedHandCount, Is.GreaterThan(0), "Handcuffing a player did not result in their hands being cuffed");
 
                 // Test to ensure a player with 4 hands will still only have 2 hands cuffed
-                AddHand(human, host);
-                AddHand(human, host);
+                AddHand(entityManager.GetNetEntity(human), host);
+                AddHand(entityManager.GetNetEntity(human), host);
 
                 Assert.Multiple(() =>
                 {
@@ -101,7 +100,7 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.ActionBlocking
             await pair.CleanReturnAsync();
         }
 
-        private static void AddHand(EntityUid to, IServerConsoleHost host)
+        private static void AddHand(NetEntity to, IServerConsoleHost host)
         {
             host.ExecuteCommand(null, $"addhand {to}");
         }

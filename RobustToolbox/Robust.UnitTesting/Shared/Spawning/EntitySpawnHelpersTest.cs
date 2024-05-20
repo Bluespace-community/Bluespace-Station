@@ -49,8 +49,7 @@ public abstract partial class EntitySpawnHelpersTest : RobustIntegrationTest
         // Set up map and spawn several nested containers
         await Server.WaitPost(() =>
         {
-            MapId = MapMan.CreateMap();
-            Map = MapMan.GetMapEntityId(MapId);
+            Map = Server.System<SharedMapSystem>().CreateMap(out MapId);
             Parent = EntMan.SpawnEntity(null, new EntityCoordinates(Map, new(1,2)));
             ChildA = EntMan.SpawnEntity(null, new EntityCoordinates(Map, default));
             ChildB = EntMan.SpawnEntity(null, new EntityCoordinates(Map, default));
@@ -58,12 +57,12 @@ public abstract partial class EntitySpawnHelpersTest : RobustIntegrationTest
             GrandChildB = EntMan.SpawnEntity(null, new EntityCoordinates(Map, default));
             GreatGrandChildA = EntMan.SpawnEntity(null, new EntityCoordinates(Map, default));
             GreatGrandChildB = EntMan.SpawnEntity(null, new EntityCoordinates(Map, default));
-            Container.EnsureContainer<TestContainer>(Parent, "childA").Insert(ChildA);
-            Container.EnsureContainer<TestContainer>(Parent, "childB").Insert(ChildB);
-            Container.EnsureContainer<TestContainer>(ChildA, "grandChildA").Insert(GrandChildA);
+            Container.Insert(ChildA, Container.EnsureContainer<TestContainer>(Parent, "childA"));
+            Container.Insert(ChildB, Container.EnsureContainer<TestContainer>(Parent, "childB"));
+            Container.Insert(GrandChildA, Container.EnsureContainer<TestContainer>(ChildA, "grandChildA"));
             Xforms.SetCoordinates(GrandChildB, new EntityCoordinates(ChildB, new(2,1)));
-            Container.EnsureContainer<TestContainer>(GrandChildA, "greatGrandChildA").Insert(GreatGrandChildA);
-            Container.EnsureContainer<TestContainer>(GrandChildB, "greatGrandChildB").Insert(GreatGrandChildB);
+            Container.Insert(GreatGrandChildA, Container.EnsureContainer<TestContainer>(GrandChildA, "greatGrandChildA"));
+            Container.Insert(GreatGrandChildB, Container.EnsureContainer<TestContainer>(GrandChildB, "greatGrandChildB"));
         });
         await Server.WaitRunTicks(5);
 
@@ -110,10 +109,10 @@ public abstract partial class EntitySpawnHelpersTest : RobustIntegrationTest
         public override int Count => _ents.Count;
 
         public override IReadOnlyList<EntityUid> ContainedEntities => _ents;
-        protected override void InternalInsert(EntityUid toInsert, IEntityManager entMan) => _ents.Add(toInsert);
-        protected override void InternalRemove(EntityUid toRemove, IEntityManager entMan) => _ents.Remove(toRemove);
+        protected internal override void InternalInsert(EntityUid toInsert, IEntityManager entMan) => _ents.Add(toInsert);
+        protected internal override void InternalRemove(EntityUid toRemove, IEntityManager entMan) => _ents.Remove(toRemove);
         public override bool Contains(EntityUid contained) => _ents.Contains(contained);
-        protected override void InternalShutdown(IEntityManager entMan, bool isClient) { }
+        protected internal override void InternalShutdown(IEntityManager entMan, SharedContainerSystem system, bool isClient) { }
         protected internal override bool CanInsert(EntityUid toinsert, bool assumeEmpty, IEntityManager entMan)
             => _ents.Count < 2 && !_ents.Contains(toinsert);
     }

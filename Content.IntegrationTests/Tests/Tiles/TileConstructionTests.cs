@@ -37,12 +37,12 @@ public sealed class TileConstructionTests : InteractionTest
         // Remove grid
         await SetTile(null);
         await SetTile(null, PlayerCoords);
-        Assert.That(MapData.MapGrid.Deleted);
+        Assert.That(MapData.Grid.Comp.Deleted);
         AssertGridCount(0);
 
         // Place Lattice
         var oldPos = TargetCoords;
-        TargetCoords = new EntityCoordinates(MapData.MapUid, 1, 0);
+        TargetCoords = SEntMan.GetNetCoordinates(new EntityCoordinates(MapData.MapUid, 1, 0));
         await Interact(Rod);
         TargetCoords = oldPos;
         await AssertTile(Lattice);
@@ -70,12 +70,12 @@ public sealed class TileConstructionTests : InteractionTest
         // Remove grid
         await SetTile(null);
         await SetTile(null, PlayerCoords);
-        Assert.That(MapData.MapGrid.Deleted);
+        Assert.That(MapData.Grid.Comp.Deleted);
         AssertGridCount(0);
 
         // Space -> Lattice
         var oldPos = TargetCoords;
-        TargetCoords = new EntityCoordinates(MapData.MapUid, 1, 0);
+        TargetCoords = SEntMan.GetNetCoordinates(new EntityCoordinates(MapData.MapUid, 1, 0));
         await Interact(Rod);
         TargetCoords = oldPos;
         await AssertTile(Lattice);

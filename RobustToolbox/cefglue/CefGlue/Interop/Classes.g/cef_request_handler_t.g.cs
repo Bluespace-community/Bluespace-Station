@@ -13,119 +13,135 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_request_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_before_browse;
-        internal IntPtr _on_open_urlfrom_tab;
-        internal IntPtr _get_resource_request_handler;
-        internal IntPtr _get_auth_credentials;
-        internal IntPtr _on_quota_request;
-        internal IntPtr _on_certificate_error;
-        internal IntPtr _on_select_client_certificate;
-        internal IntPtr _on_render_view_ready;
-        internal IntPtr _on_render_process_terminated;
-        internal IntPtr _on_document_available_in_main_frame;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, cef_frame_t*, cef_request_t*, int, int, int> _on_before_browse;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, cef_frame_t*, cef_string_t*, CefWindowOpenDisposition, int, int> _on_open_urlfrom_tab;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, cef_frame_t*, cef_request_t*, int, int, cef_string_t*, int*, cef_resource_request_handler_t*> _get_resource_request_handler;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, cef_string_t*, int, cef_string_t*, int, cef_string_t*, cef_string_t*, cef_auth_callback_t*, int> _get_auth_credentials;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, CefErrorCode, cef_string_t*, cef_sslinfo_t*, cef_callback_t*, int> _on_certificate_error;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, int, cef_string_t*, int, UIntPtr, cef_x509certificate_t**, cef_select_client_certificate_callback_t*, int> _on_select_client_certificate;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, void> _on_render_view_ready;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, CefTerminationStatus, void> _on_render_process_terminated;
+        internal delegate* unmanaged<cef_request_handler_t*, cef_browser_t*, void> _on_document_available_in_main_frame;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_request_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_request_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_request_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_request_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_before_browse_delegate(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int user_gesture, int is_redirect);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_open_urlfrom_tab_delegate(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, CefWindowOpenDisposition target_disposition, int user_gesture);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate cef_resource_request_handler_t* get_resource_request_handler_delegate(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int is_navigation, int is_download, cef_string_t* request_initiator, int* disable_default_handling);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_auth_credentials_delegate(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_quota_request_delegate(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, long new_size, cef_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_certificate_error_delegate(cef_request_handler_t* self, cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_select_client_certificate_delegate(cef_request_handler_t* self, cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_render_view_ready_delegate(cef_request_handler_t* self, cef_browser_t* browser);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_render_process_terminated_delegate(cef_request_handler_t* self, cef_browser_t* browser, CefTerminationStatus status);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_document_available_in_main_frame_delegate(cef_request_handler_t* self, cef_browser_t* browser);
-        
-        private static int _sizeof;
-        
-        static cef_request_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_request_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_request_handler_t));
+            var obj = (CefRequestHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_request_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_request_handler_t* self)
         {
-            var ptr = (cef_request_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_request_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_request_handler_t* self)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_request_handler_t* self)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_before_browse(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int user_gesture, int is_redirect)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.on_before_browse(self, browser, frame, request, user_gesture, is_redirect);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_open_urlfrom_tab(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, CefWindowOpenDisposition target_disposition, int user_gesture)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.on_open_urlfrom_tab(self, browser, frame, target_url, target_disposition, user_gesture);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static cef_resource_request_handler_t* get_resource_request_handler(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int is_navigation, int is_download, cef_string_t* request_initiator, int* disable_default_handling)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.get_resource_request_handler(self, browser, frame, request, is_navigation, is_download, request_initiator, disable_default_handling);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_auth_credentials(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.get_auth_credentials(self, browser, origin_url, isProxy, host, port, realm, scheme, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_certificate_error(cef_request_handler_t* self, cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_callback_t* callback)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.on_certificate_error(self, browser, cert_error, request_url, ssl_info, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_select_client_certificate(cef_request_handler_t* self, cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            return obj.on_select_client_certificate(self, browser, isProxy, host, port, certificatesCount, certificates, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_render_view_ready(cef_request_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            obj.on_render_view_ready(self, browser);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_render_process_terminated(cef_request_handler_t* self, cef_browser_t* browser, CefTerminationStatus status)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            obj.on_render_process_terminated(self, browser, status);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_document_available_in_main_frame(cef_request_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefRequestHandler)self->_obj.Target;
+            obj.on_document_available_in_main_frame(self, browser);
+        }
+        
+        internal static cef_request_handler_t* Alloc(CefRequestHandler obj)
+        {
+            var ptr = (cef_request_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_request_handler_t));
+            *ptr = default(cef_request_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_request_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_request_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_request_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_request_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_request_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_before_browse = &on_before_browse;
+            ptr->_on_open_urlfrom_tab = &on_open_urlfrom_tab;
+            ptr->_get_resource_request_handler = &get_resource_request_handler;
+            ptr->_get_auth_credentials = &get_auth_credentials;
+            ptr->_on_certificate_error = &on_certificate_error;
+            ptr->_on_select_client_certificate = &on_select_client_certificate;
+            ptr->_on_render_view_ready = &on_render_view_ready;
+            ptr->_on_render_process_terminated = &on_render_process_terminated;
+            ptr->_on_document_available_in_main_frame = &on_document_available_in_main_frame;
             return ptr;
         }
         
         internal static void Free(cef_request_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

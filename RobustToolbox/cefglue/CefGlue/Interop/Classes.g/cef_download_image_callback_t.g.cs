@@ -13,56 +13,63 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_download_image_callback_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_download_image_finished;
+        internal delegate* unmanaged<cef_download_image_callback_t*, cef_string_t*, int, cef_image_t*, void> _on_download_image_finished;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_download_image_callback_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_download_image_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_download_image_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_download_image_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_download_image_finished_delegate(cef_download_image_callback_t* self, cef_string_t* image_url, int http_status_code, cef_image_t* image);
-        
-        private static int _sizeof;
-        
-        static cef_download_image_callback_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_download_image_callback_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_download_image_callback_t));
+            var obj = (CefDownloadImageCallback)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_download_image_callback_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_download_image_callback_t* self)
         {
-            var ptr = (cef_download_image_callback_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_download_image_callback_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefDownloadImageCallback)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_download_image_callback_t* self)
+        {
+            var obj = (CefDownloadImageCallback)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_download_image_callback_t* self)
+        {
+            var obj = (CefDownloadImageCallback)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_download_image_finished(cef_download_image_callback_t* self, cef_string_t* image_url, int http_status_code, cef_image_t* image)
+        {
+            var obj = (CefDownloadImageCallback)self->_obj.Target;
+            obj.on_download_image_finished(self, image_url, http_status_code, image);
+        }
+        
+        internal static cef_download_image_callback_t* Alloc(CefDownloadImageCallback obj)
+        {
+            var ptr = (cef_download_image_callback_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_download_image_callback_t));
+            *ptr = default(cef_download_image_callback_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_download_image_callback_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_download_image_callback_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_download_image_callback_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_download_image_callback_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_download_image_callback_t*, int>)&has_at_least_one_ref;
+            ptr->_on_download_image_finished = &on_download_image_finished;
             return ptr;
         }
         
         internal static void Free(cef_download_image_callback_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

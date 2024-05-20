@@ -13,63 +13,72 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_keyboard_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_pre_key_event;
-        internal IntPtr _on_key_event;
+        internal delegate* unmanaged<cef_keyboard_handler_t*, cef_browser_t*, cef_key_event_t*, IntPtr, int*, int> _on_pre_key_event;
+        internal delegate* unmanaged<cef_keyboard_handler_t*, cef_browser_t*, cef_key_event_t*, IntPtr, int> _on_key_event;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_keyboard_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_keyboard_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_keyboard_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_keyboard_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_pre_key_event_delegate(cef_keyboard_handler_t* self, cef_browser_t* browser, cef_key_event_t* @event, IntPtr os_event, int* is_keyboard_shortcut);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_key_event_delegate(cef_keyboard_handler_t* self, cef_browser_t* browser, cef_key_event_t* @event, IntPtr os_event);
-        
-        private static int _sizeof;
-        
-        static cef_keyboard_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_keyboard_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_keyboard_handler_t));
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_keyboard_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_keyboard_handler_t* self)
         {
-            var ptr = (cef_keyboard_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_keyboard_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_keyboard_handler_t* self)
+        {
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_keyboard_handler_t* self)
+        {
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_pre_key_event(cef_keyboard_handler_t* self, cef_browser_t* browser, cef_key_event_t* @event, IntPtr os_event, int* is_keyboard_shortcut)
+        {
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            return obj.on_pre_key_event(self, browser, @event, os_event, is_keyboard_shortcut);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_key_event(cef_keyboard_handler_t* self, cef_browser_t* browser, cef_key_event_t* @event, IntPtr os_event)
+        {
+            var obj = (CefKeyboardHandler)self->_obj.Target;
+            return obj.on_key_event(self, browser, @event, os_event);
+        }
+        
+        internal static cef_keyboard_handler_t* Alloc(CefKeyboardHandler obj)
+        {
+            var ptr = (cef_keyboard_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_keyboard_handler_t));
+            *ptr = default(cef_keyboard_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_keyboard_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_keyboard_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_keyboard_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_keyboard_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_keyboard_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_pre_key_event = &on_pre_key_event;
+            ptr->_on_key_event = &on_key_event;
             return ptr;
         }
         
         internal static void Free(cef_keyboard_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

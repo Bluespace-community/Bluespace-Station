@@ -2,7 +2,6 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using Robust.Server.Player;
 using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
@@ -14,8 +13,7 @@ using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Dynamics;
 using Robust.Shared.Physics.Systems;
-using cIPlayerManager = Robust.Client.Player.IPlayerManager;
-using sIPlayerManager = Robust.Server.Player.IPlayerManager;
+using Robust.Shared.Player;
 
 // ReSharper disable AccessToStaticMemberViaDerivedType
 
@@ -42,8 +40,8 @@ public sealed class BroadphaseNetworkingTest : RobustIntegrationTest
         var cEntMan = client.ResolveDependency<IEntityManager>();
         var netMan = client.ResolveDependency<IClientNetManager>();
         var confMan = server.ResolveDependency<IConfigurationManager>();
-        var cPlayerMan = client.ResolveDependency<cIPlayerManager>();
-        var sPlayerMan = server.ResolveDependency<sIPlayerManager>();
+        var cPlayerMan = client.ResolveDependency<ISharedPlayerManager>();
+        var sPlayerMan = server.ResolveDependency<ISharedPlayerManager>();
         var fixturesSystem = sEntMan.EntitySysManager.GetEntitySystem<FixtureSystem>();
         var physicsSystem = sEntMan.EntitySysManager.GetEntitySystem<SharedPhysicsSystem>();
 
@@ -62,11 +60,10 @@ public sealed class BroadphaseNetworkingTest : RobustIntegrationTest
         EntityUid map1 = default;
         await server.WaitPost(() =>
         {
-            var mapId = mapMan.CreateMap();
-            map1 = mapMan.GetMapEntityId(mapId);
-            var gridComp = mapMan.CreateGrid(mapId);
-            gridComp.SetTile(Vector2i.Zero, new Tile(1));
-            grid1 = gridComp.Owner;
+            map1 = sEntMan.System<SharedMapSystem>().CreateMap(out var mapId);
+            var gridEnt = mapMan.CreateGridEntity(mapId);
+            gridEnt.Comp.SetTile(Vector2i.Zero, new Tile(1));
+            grid1 = gridEnt.Owner;
         });
 
         var map1Net = sEntMan.GetNetEntity(map1);
@@ -90,9 +87,9 @@ public sealed class BroadphaseNetworkingTest : RobustIntegrationTest
             Assert.That(physics.CanCollide);
 
             // Attach player.
-            var session = (IPlayerSession) sPlayerMan.Sessions.First();
-            session.AttachToEntity(player);
-            session.JoinGame();
+            var session = sPlayerMan.Sessions.First();
+            server.PlayerMan.SetAttachedEntity(session, player);
+            sPlayerMan.JoinGame(session);
         });
 
         var playerNet = sEntMan.GetNetEntity(player);
@@ -106,7 +103,7 @@ public sealed class BroadphaseNetworkingTest : RobustIntegrationTest
         // Check player got properly attached
         await client.WaitPost(() =>
         {
-            var ent = cEntMan.GetNetEntity(cPlayerMan.LocalPlayer?.ControlledEntity);
+            var ent = cEntMan.GetNetEntity(cPlayerMan.LocalEntity);
             Assert.That(ent, Is.EqualTo(playerNet));
         });
 
@@ -134,11 +131,10 @@ public sealed class BroadphaseNetworkingTest : RobustIntegrationTest
         await server.WaitPost(() =>
         {
             // Create grid
-            var mapId = mapMan.CreateMap();
-            map2 = mapMan.GetMapEntityId(mapId);
-            var gridComp = mapMan.CreateGrid(mapId);
-            gridComp.SetTile(Vector2i.Zero, new Tile(1));
-            grid2 = gridComp.Owner;
+            map2 = sEntMan.System<SharedMapSystem>().CreateMap(out var mapId);
+            var gridEnt = mapMan.CreateGridEntity(mapId);
+            gridEnt.Comp.SetTile(Vector2i.Zero, new Tile(1));
+            grid2 = gridEnt.Owner;
 
             // Move player
             var coords = new EntityCoordinates(grid2, Vector2.Zero);

@@ -27,7 +27,6 @@ namespace Xilium.CefGlue.Interop
         public int command_line_args_disabled;
         public cef_string_t cache_path;
         public cef_string_t root_cache_path;
-        public cef_string_t user_data_path;
         public int persist_session_cookies;
         public int persist_user_preferences;
         public cef_string_t user_agent;
@@ -35,6 +34,7 @@ namespace Xilium.CefGlue.Interop
         public cef_string_t locale;
         public cef_string_t log_file;
         public CefLogSeverity log_severity;
+        public CefLogItems log_items;
         public cef_string_t javascript_flags;
         public cef_string_t resources_dir_path;
         public cef_string_t locales_dir_path;
@@ -45,6 +45,8 @@ namespace Xilium.CefGlue.Interop
         public cef_string_t accept_language_list;
         public cef_string_t cookieable_schemes_list;
         public int cookieable_schemes_exclude_defaults;
+        public cef_string_t chrome_policy_id;
+        public int chrome_app_icon_id;
 
         #region Alloc & Free
         private static int _sizeof;

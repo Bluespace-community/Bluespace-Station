@@ -27,6 +27,7 @@ public abstract class ComponentTreeSystem<TTreeComp, TComp> : EntitySystem
 
     private readonly Queue<ComponentTreeEntry<TComp>> _updateQueue = new();
     private readonly HashSet<EntityUid> _updated = new();
+    protected EntityQuery<TComp> Query;
 
     /// <summary>
     ///     If true, this system will update the tree positions every frame update. See also <see cref="DoTickUpdate"/>. Some systems may need to do both.
@@ -65,22 +66,38 @@ public abstract class ComponentTreeSystem<TTreeComp, TComp> : EntitySystem
 
         if (Recursive)
         {
-            SubscribeLocalEvent<TComp, TreeRecursiveMoveEvent>(HandleRecursiveMove);
+            _recursiveMoveSys.OnTreeRecursiveMove += HandleRecursiveMove;
             _recursiveMoveSys.AddSubscription();
         }
         else
         {
+            // TODO EXCEPTION TOLERANCE
+            // Ensure lookup trees update before content code handles move events.
             SubscribeLocalEvent<TComp, MoveEvent>(HandleMove);
         }
 
         SubscribeLocalEvent<TTreeComp, EntityTerminatingEvent>(OnTerminating);
         SubscribeLocalEvent<TTreeComp, ComponentAdd>(OnTreeAdd);
         SubscribeLocalEvent<TTreeComp, ComponentRemove>(OnTreeRemove);
+
+        Query = GetEntityQuery<TComp>();
+    }
+
+    public override void Shutdown()
+    {
+        if (Recursive)
+        {
+            _recursiveMoveSys.OnTreeRecursiveMove -= HandleRecursiveMove;
+        }
     }
 
     #region Queue Update
-    private void HandleRecursiveMove(EntityUid uid, TComp component, ref TreeRecursiveMoveEvent args)
-        => QueueTreeUpdate(uid, component, args.Xform);
+
+    private void HandleRecursiveMove(EntityUid uid, TransformComponent xform)
+    {
+        if (Query.TryGetComponent(uid, out var component))
+            QueueTreeUpdate(uid, component, xform);
+    }
 
     private void HandleMove(EntityUid uid, TComp component, ref MoveEvent args)
         => QueueTreeUpdate(uid, component, args.Component);

@@ -13,56 +13,63 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_find_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_find_result;
+        internal delegate* unmanaged<cef_find_handler_t*, cef_browser_t*, int, int, cef_rect_t*, int, int, void> _on_find_result;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_find_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_find_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_find_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_find_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_find_result_delegate(cef_find_handler_t* self, cef_browser_t* browser, int identifier, int count, cef_rect_t* selectionRect, int activeMatchOrdinal, int finalUpdate);
-        
-        private static int _sizeof;
-        
-        static cef_find_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_find_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_find_handler_t));
+            var obj = (CefFindHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_find_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_find_handler_t* self)
         {
-            var ptr = (cef_find_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_find_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefFindHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_find_handler_t* self)
+        {
+            var obj = (CefFindHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_find_handler_t* self)
+        {
+            var obj = (CefFindHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_find_result(cef_find_handler_t* self, cef_browser_t* browser, int identifier, int count, cef_rect_t* selectionRect, int activeMatchOrdinal, int finalUpdate)
+        {
+            var obj = (CefFindHandler)self->_obj.Target;
+            obj.on_find_result(self, browser, identifier, count, selectionRect, activeMatchOrdinal, finalUpdate);
+        }
+        
+        internal static cef_find_handler_t* Alloc(CefFindHandler obj)
+        {
+            var ptr = (cef_find_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_find_handler_t));
+            *ptr = default(cef_find_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_find_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_find_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_find_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_find_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_find_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_find_result = &on_find_result;
             return ptr;
         }
         
         internal static void Free(cef_find_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

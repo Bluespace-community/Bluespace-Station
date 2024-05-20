@@ -11,7 +11,7 @@
     /// </summary>
     public abstract unsafe partial class CefResolveCallback
     {
-        private void on_resolve_completed(cef_resolve_callback_t* self, CefErrorCode result, cef_string_list* resolved_ips)
+        internal void on_resolve_completed(cef_resolve_callback_t* self, CefErrorCode result, cef_string_list* resolved_ips)
         {
             CheckSelf(self);
 

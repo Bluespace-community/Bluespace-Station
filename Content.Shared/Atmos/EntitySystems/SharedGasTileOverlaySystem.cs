@@ -66,7 +66,10 @@ namespace Content.Shared.Atmos.EntitySystems
         [Serializable, NetSerializable]
         public readonly struct GasOverlayData : IEquatable<GasOverlayData>
         {
+            [ViewVariables]
             public readonly byte FireState;
+
+            [ViewVariables]
             public readonly byte[] Opacity;
 
             // TODO change fire color based on temps
@@ -103,8 +106,8 @@ namespace Content.Shared.Atmos.EntitySystems
         [Serializable, NetSerializable]
         public sealed class GasOverlayUpdateEvent : EntityEventArgs
         {
-            public Dictionary<EntityUid, List<GasOverlayChunk>> UpdatedChunks = new();
-            public Dictionary<EntityUid, HashSet<Vector2i>> RemovedChunks = new();
+            public Dictionary<NetEntity, List<GasOverlayChunk>> UpdatedChunks = new();
+            public Dictionary<NetEntity, HashSet<Vector2i>> RemovedChunks = new();
         }
     }
 }

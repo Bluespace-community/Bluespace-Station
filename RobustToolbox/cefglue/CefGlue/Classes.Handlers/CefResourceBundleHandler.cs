@@ -13,7 +13,7 @@
     /// </summary>
     public abstract unsafe partial class CefResourceBundleHandler
     {
-        private int get_localized_string(cef_resource_bundle_handler_t* self, int string_id, cef_string_t* @string)
+        internal int get_localized_string(cef_resource_bundle_handler_t* self, int string_id, cef_string_t* @string)
         {
             CheckSelf(self);
 
@@ -41,7 +41,7 @@
         }
 
 
-        private int get_data_resource(cef_resource_bundle_handler_t* self, int resource_id, void** data, UIntPtr* data_size)
+        internal int get_data_resource(cef_resource_bundle_handler_t* self, int resource_id, void** data, UIntPtr* data_size)
         {
             CheckSelf(self);
 
@@ -60,11 +60,11 @@
 
         /// <summary>
         /// Called to retrieve data for the specified scale independent |resource_id|.
-        /// To provide the resource data set |data| and |data_size| to the data pointer
-        /// and size respectively and return true. To use the default resource data
-        /// return false. The resource data will not be copied and must remain resident
-        /// in memory. Include cef_pack_resources.h for a listing of valid resource ID
-        /// values.
+        /// To provide the resource data set |data| and |data_size| to the data
+        /// pointer and size respectively and return true. To use the default resource
+        /// data return false. The resource data will not be copied and must remain
+        /// resident in memory. Include cef_pack_resources.h for a listing of valid
+        /// resource ID values.
         /// </summary>
         protected virtual bool GetDataResource(int resourceId, out void* data, out UIntPtr dataSize)
         {
@@ -74,7 +74,7 @@
         }
 
 
-        private int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
+        internal int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
         {
             CheckSelf(self);
 
@@ -96,8 +96,8 @@
         /// factor |scale_factor|. To provide the resource data set |data| and
         /// |data_size| to the data pointer and size respectively and return true. To
         /// use the default resource data return false. The resource data will not be
-        /// copied and must remain resident in memory. Include cef_pack_resources.h for
-        /// a listing of valid resource ID values.
+        /// copied and must remain resident in memory. Include cef_pack_resources.h
+        /// for a listing of valid resource ID values.
         /// </summary>
         protected virtual bool GetDataResourceForScale(int resourceId, CefScaleFactor scaleFactor, out void* data, out UIntPtr dataSize)
         {

@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefRequestHandler
     {
-        private int on_before_browse(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int user_gesture, int is_redirect)
+        internal int on_before_browse(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int user_gesture, int is_redirect)
         {
             CheckSelf(self);
 
@@ -45,7 +45,7 @@
         }
 
 
-        private int on_open_urlfrom_tab(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, CefWindowOpenDisposition target_disposition, int user_gesture)
+        internal int on_open_urlfrom_tab(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* target_url, CefWindowOpenDisposition target_disposition, int user_gesture)
         {
             CheckSelf(self);
 
@@ -72,8 +72,8 @@
         /// new tab, etc). The |user_gesture| value will be true if the browser
         /// navigated via explicit user gesture (e.g. clicking a link) or false if it
         /// navigated automatically (e.g. via the DomContentLoaded event). Return true
-        /// to cancel the navigation or false to allow the navigation to proceed in the
-        /// source browser's top-level frame.
+        /// to cancel the navigation or false to allow the navigation to proceed in
+        /// the source browser's top-level frame.
         /// </summary>
         protected virtual bool OnOpenUrlFromTab(CefBrowser browser, CefFrame frame, string targetUrl, CefWindowOpenDisposition targetDisposition, bool userGesture)
         {
@@ -81,7 +81,7 @@
         }
 
 
-        private cef_resource_request_handler_t* get_resource_request_handler(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int is_navigation, int is_download, cef_string_t* request_initiator, int* disable_default_handling)
+        internal cef_resource_request_handler_t* get_resource_request_handler(cef_request_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_request_t* request, int is_navigation, int is_download, cef_string_t* request_initiator, int* disable_default_handling)
         {
             CheckSelf(self);
 
@@ -104,8 +104,8 @@
         /// Called on the browser process IO thread before a resource request is
         /// initiated. The |browser| and |frame| values represent the source of the
         /// request. |request| represents the request contents and cannot be modified
-        /// in this callback. |is_navigation| will be true if the resource request is a
-        /// navigation. |is_download| will be true if the resource request is a
+        /// in this callback. |is_navigation| will be true if the resource request is
+        /// a navigation. |is_download| will be true if the resource request is a
         /// download. |request_initiator| is the origin (scheme + domain) of the page
         /// that initiated the request. Set |disable_default_handling| to true to
         /// disable default handling of the request, in which case it will need to be
@@ -118,7 +118,7 @@
         protected abstract CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling);
 
 
-        private int get_auth_credentials(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
+        internal int get_auth_credentials(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -152,34 +152,7 @@
         }
 
 
-        private int on_quota_request(cef_request_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, long new_size, cef_callback_t* callback)
-        {
-            CheckSelf(self);
-
-            var m_browser = CefBrowser.FromNative(browser);
-            var m_origin_url = cef_string_t.ToString(origin_url);
-            var m_callback = CefCallback.FromNative(callback);
-
-            var result = OnQuotaRequest(m_browser, m_origin_url, new_size, m_callback);
-
-            return result ? 1 : 0;
-        }
-
-        /// <summary>
-        /// Called on the IO thread when JavaScript requests a specific storage quota
-        /// size via the webkitStorageInfo.requestQuota function. |origin_url| is the
-        /// origin of the page making the request. |new_size| is the requested quota
-        /// size in bytes. Return true to continue the request and call CefCallback
-        /// methods either in this method or at a later time to grant or deny the
-        /// request. Return false to cancel the request immediately.
-        /// </summary>
-        protected virtual bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefCallback callback)
-        {
-            return false;
-        }
-
-
-        private int on_certificate_error(cef_request_handler_t* self, cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_callback_t* callback)
+        internal int on_certificate_error(cef_request_handler_t* self, cef_browser_t* browser, CefErrorCode cert_error, cef_string_t* request_url, cef_sslinfo_t* ssl_info, cef_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -197,9 +170,9 @@
         /// Called on the UI thread to handle requests for URLs with an invalid
         /// SSL certificate. Return true and call CefCallback methods either in this
         /// method or at a later time to continue or cancel the request. Return false
-        /// to cancel the request immediately. If CefSettings.ignore_certificate_errors
-        /// is set all invalid certificates will be accepted without calling this
-        /// method.
+        /// to cancel the request immediately. If
+        /// cef_settings_t.ignore_certificate_errors is set all invalid certificates
+        /// will be accepted without calling this method.
         /// </summary>
         protected virtual bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefCallback callback)
         {
@@ -207,7 +180,7 @@
         }
 
 
-        private int on_select_client_certificate(cef_request_handler_t* self, cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback)
+        internal int on_select_client_certificate(cef_request_handler_t* self, cef_browser_t* browser, int isProxy, cef_string_t* host, int port, UIntPtr certificatesCount, cef_x509certificate_t** certificates, cef_select_client_certificate_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -239,12 +212,13 @@
         /// authentication. Return false to use the default behavior and automatically
         /// select the first certificate available. Return true and call
         /// CefSelectClientCertificateCallback::Select either in this method or at a
-        /// later time to select a certificate. Do not call Select or call it with NULL
-        /// to continue without using any certificate. |isProxy| indicates whether the
-        /// host is an HTTPS proxy or the origin server. |host| and |port| contains the
-        /// hostname and port of the SSL server. |certificates| is the list of
-        /// certificates to choose from; this list has already been pruned by Chromium
-        /// so that it only contains certificates from issuers that the server trusts.
+        /// later time to select a certificate. Do not call Select or call it with
+        /// NULL to continue without using any certificate. |isProxy| indicates
+        /// whether the host is an HTTPS proxy or the origin server. |host| and |port|
+        /// contains the hostname and port of the SSL server. |certificates| is the
+        /// list of certificates to choose from; this list has already been pruned by
+        /// Chromium so that it only contains certificates from issuers that the
+        /// server trusts.
         /// </summary>
         protected virtual bool OnSelectClientCertificate(CefBrowser browser, bool isProxy, string host, int port, CefX509Certificate[] certificates, CefSelectClientCertificateCallback callback)
         {
@@ -252,7 +226,7 @@
         }
 
 
-        private void on_render_view_ready(cef_request_handler_t* self, cef_browser_t* browser)
+        internal void on_render_view_ready(cef_request_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 
@@ -270,7 +244,7 @@
         }
 
 
-        private void on_render_process_terminated(cef_request_handler_t* self, cef_browser_t* browser, CefTerminationStatus status)
+        internal void on_render_process_terminated(cef_request_handler_t* self, cef_browser_t* browser, CefTerminationStatus status)
         {
             CheckSelf(self);
 
@@ -289,7 +263,7 @@
         }
 
 
-        private void on_document_available_in_main_frame(cef_request_handler_t* self, cef_browser_t* browser)
+        internal void on_document_available_in_main_frame(cef_request_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 

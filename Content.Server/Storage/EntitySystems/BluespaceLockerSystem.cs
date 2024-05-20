@@ -3,7 +3,7 @@ using Content.Server.Explosion.EntitySystems;
 using Content.Server.Resist;
 using Content.Server.Station.Components;
 using Content.Server.Storage.Components;
-using Content.Server.Tools.Systems;
+using Content.Shared.Access;
 using Content.Shared.Access.Components;
 using Content.Shared.Coordinates;
 using Content.Shared.DoAfter;
@@ -11,8 +11,11 @@ using Content.Shared.Lock;
 using Content.Shared.Mind.Components;
 using Content.Shared.Storage.Components;
 using Content.Shared.Storage.EntitySystems;
+using Content.Shared.Tools.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Storage.EntitySystems;
 
@@ -20,10 +23,12 @@ public sealed class BluespaceLockerSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _robustRandom = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
     [Dependency] private readonly EntityStorageSystem _entityStorage = default!;
     [Dependency] private readonly WeldableSystem _weldableSystem = default!;
     [Dependency] private readonly LockSystem _lockSystem = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
     [Dependency] private readonly ExplosionSystem _explosionSystem = default!;
 
     public override void Initialize()
@@ -91,12 +96,12 @@ public sealed class BluespaceLockerSystem : EntitySystem
                         if (!component.BehaviorProperties.TransportSentient)
                             continue;
 
-                        entityStorageComponent.Contents.Insert(entity, EntityManager);
+                        _containerSystem.Insert(entity, entityStorageComponent.Contents);
                         transportedEntities++;
                     }
                     else if (component.BehaviorProperties.TransportEntities)
                     {
-                        entityStorageComponent.Contents.Insert(entity, EntityManager);
+                        _containerSystem.Insert(entity, entityStorageComponent.Contents);
                         transportedEntities++;
                     }
                 }
@@ -135,7 +140,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
     }
 
     /// <returns>True if any HashSet in <paramref name="a"/> would grant access to <paramref name="b"/></returns>
-    private bool AccessMatch(IReadOnlyCollection<HashSet<string>>? a, IReadOnlyCollection<HashSet<string>>? b)
+    private bool AccessMatch(IReadOnlyCollection<HashSet<ProtoId<AccessLevelPrototype>>>? a, IReadOnlyCollection<HashSet<ProtoId<AccessLevelPrototype>>>? b)
     {
         if ((a == null || a.Count == 0) && (b == null || b.Count == 0))
             return true;
@@ -196,7 +201,13 @@ public sealed class BluespaceLockerSystem : EntitySystem
             if (component.BluespaceLinks.Count < component.MinBluespaceLinks)
             {
                 // Get an shuffle the list of all EntityStorages
-                var storages = EntityQuery<EntityStorageComponent>().ToArray();
+                var storages = new List<Entity<EntityStorageComponent>>();
+                var query = EntityQueryEnumerator<EntityStorageComponent>();
+                while (query.MoveNext(out var uid, out var storage))
+                {
+                    storages.Add((uid, storage));
+                }
+
                 _robustRandom.Shuffle(storages);
 
                 // Add valid candidates till MinBluespaceLinks is met
@@ -284,7 +295,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
         {
             EnsureComp<DoAfterComponent>(uid);
 
-            _doAfterSystem.TryStartDoAfter(new DoAfterArgs(uid, component.BehaviorProperties.Delay, new BluespaceLockerDoAfterEvent(), uid));
+            _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, uid, component.BehaviorProperties.Delay, new BluespaceLockerDoAfterEvent(), uid));
             return;
         }
 
@@ -302,12 +313,12 @@ public sealed class BluespaceLockerSystem : EntitySystem
                     if (!component.BehaviorProperties.TransportSentient)
                         continue;
 
-                    target.Value.storageComponent.Contents.Insert(entity, EntityManager);
+                    _containerSystem.Insert(entity, target.Value.storageComponent.Contents);
                     transportedEntities++;
                 }
                 else if (component.BehaviorProperties.TransportEntities)
                 {
-                    target.Value.storageComponent.Contents.Insert(entity, EntityManager);
+                    _containerSystem.Insert(entity, target.Value.storageComponent.Contents);
                     transportedEntities++;
                 }
             }
@@ -327,13 +338,12 @@ public sealed class BluespaceLockerSystem : EntitySystem
         }
         else
         {
-            if (target.Value.storageComponent.IsWeldedShut)
+            if (_weldableSystem.IsWelded(target.Value.uid))
             {
                 // It gets bluespaced open...
-                _weldableSystem.ForceWeldedState(target.Value.uid, false);
-                if (target.Value.storageComponent.IsWeldedShut)
-                    target.Value.storageComponent.IsWeldedShut = false;
+                _weldableSystem.SetWeldedState(target.Value.uid, false);
             }
+
             LockComponent? lockComponent = null;
             if (Resolve(target.Value.uid, ref lockComponent, false) && lockComponent.Locked)
                 _lockSystem.Unlock(target.Value.uid, target.Value.uid, lockComponent);
@@ -379,7 +389,7 @@ public sealed class BluespaceLockerSystem : EntitySystem
         switch (component.BehaviorProperties.DestroyType)
         {
             case BluespaceLockerDestroyType.Explode:
-                _explosionSystem.QueueExplosion(uid.ToCoordinates().ToMap(EntityManager),
+                _explosionSystem.QueueExplosion(uid.ToCoordinates().ToMap(EntityManager, _transformSystem),
                     ExplosionSystem.DefaultExplosionPrototypeId, 4, 1, 2, maxTileBreak: 0);
                 goto case BluespaceLockerDestroyType.Delete;
             case BluespaceLockerDestroyType.Delete:

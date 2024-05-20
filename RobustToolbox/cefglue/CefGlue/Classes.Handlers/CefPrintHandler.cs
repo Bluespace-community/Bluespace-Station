@@ -13,7 +13,7 @@
     /// </summary>
     public abstract unsafe partial class CefPrintHandler
     {
-        private void on_print_start(cef_print_handler_t* self, cef_browser_t* browser)
+        internal void on_print_start(cef_print_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 
@@ -32,14 +32,16 @@
         }
 
 
-        private void on_print_settings(cef_print_handler_t* self, cef_browser_t* browser, cef_print_settings_t* settings, int get_defaults)
+        internal void on_print_settings(cef_print_handler_t* self, cef_browser_t* browser, cef_print_settings_t* settings, int get_defaults)
         {
             CheckSelf(self);
 
             var mBrowser = CefBrowser.FromNative(browser);
-            var m_settings = CefPrintSettings.FromNative(settings);
-            OnPrintSettings(mBrowser, m_settings, get_defaults != 0);
-            m_settings.Dispose();
+            using (var m_settings = CefPrintSettings.FromNative(settings))
+            {
+                OnPrintSettings(mBrowser, m_settings, get_defaults != 0);
+            }
+
         }
 
         /// <summary>
@@ -49,7 +51,7 @@
         /// </summary>
         protected abstract void OnPrintSettings(CefBrowser browser, CefPrintSettings settings, bool getDefaults);
 
-        private int on_print_dialog(cef_print_handler_t* self, cef_browser_t* browser, int has_selection, cef_print_dialog_callback_t* callback)
+        internal int on_print_dialog(cef_print_handler_t* self, cef_browser_t* browser, int has_selection, cef_print_dialog_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -66,7 +68,7 @@
         /// </summary>
         protected abstract bool OnPrintDialog(CefBrowser browser, bool hasSelection, CefPrintDialogCallback callback);
 
-        private int on_print_job(cef_print_handler_t* self, cef_browser_t* browser, cef_string_t* document_name, cef_string_t* pdf_file_path, cef_print_job_callback_t* callback)
+        internal int on_print_job(cef_print_handler_t* self, cef_browser_t* browser, cef_string_t* document_name, cef_string_t* pdf_file_path, cef_print_job_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -88,7 +90,7 @@
         protected abstract bool OnPrintJob(CefBrowser browser, string documentName, string pdfFilePath, CefPrintJobCallback callback);
 
 
-        private void on_print_reset(cef_print_handler_t* self, cef_browser_t* browser)
+        internal void on_print_reset(cef_print_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 
@@ -102,7 +104,7 @@
         protected abstract void OnPrintReset(CefBrowser browser);
 
 
-        private cef_size_t get_pdf_paper_size(cef_print_handler_t* self, cef_browser_t* browser, int device_units_per_inch)
+        internal cef_size_t get_pdf_paper_size(cef_print_handler_t* self, cef_browser_t* browser, int device_units_per_inch)
         {
             CheckSelf(self);
 

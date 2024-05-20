@@ -1,7 +1,8 @@
 - type: entity
   save: false
-  name: Urisst' Mzhand
-  parent: [BaseMobReptilian, BaseMob]
+  name: Urist McScales
+  suffix: Urisst' Mzhand
+  parent: BaseMobReptilian
   id: MobReptilian
 
 #Weh

@@ -31,12 +31,12 @@ c2cs_types = {
     'void': 'void',
     'char': 'byte',
     'int': 'int',
-    'int16': 'short',
-    'uint16': 'ushort',
-    'int32': 'int',
-    'uint32': 'uint',
-    'int64': 'long',
-    'uint64': 'ulong',
+    'int16_t': 'short',
+    'uint16_t': 'ushort',
+    'int32_t': 'int',
+    'uint32_t': 'uint',
+    'int64_t': 'long',
+    'uint64_t': 'ulong',
     'float': 'float',
     'double': 'double',
     'size_t': 'UIntPtr',
@@ -65,7 +65,6 @@ c2cs_types = {
     'cef_proxy_info_t': 'cef_proxy_info_t',
     'cef_popup_features_t': 'cef_popup_features_t',
     'cef_browser_settings_t': 'cef_browser_settings_t',
-    'cef_time_t': 'cef_time_t',
     'cef_cookie_t': 'cef_cookie_t',
     'cef_settings_t': 'cef_settings_t',
     'cef_key_event_t': 'cef_key_event_t',
@@ -84,7 +83,9 @@ c2cs_types = {
     'cef_touch_event_t': 'cef_touch_event_t',
     'cef_audio_parameters_t': 'cef_audio_parameters_t',
     'cef_media_sink_device_info_t': 'cef_media_sink_device_info_t',
-    
+    'cef_touch_handle_state_t': 'cef_touch_handle_state_t',
+    'cef_basetime_t': 'CefBaseTime',
+    'cef_time_t': 'CefTime',
 
     # platform dependend structs
     'cef_main_args_t': 'cef_main_args_t',
@@ -168,6 +169,20 @@ c2cs_enumtypes = {
     'cef_media_route_connection_state_t': 'CefMediaRouteConnectionState',
     'cef_media_route_create_result_t': 'CefMediaRouteCreateResult',
     'cef_media_sink_icon_type_t': 'CefMediaSinkIconType',
+    'cef_quick_menu_edit_state_flags_t': 'CefQuickMenuEditStateFlags',
+    'cef_touch_handle_state_flags_t': 'CefTouchHandleStateFlags',
+    'cef_horizontal_alignment_t': 'CefHorizontalAlignment',
+    'cef_media_access_permission_types_t': 'CefMediaAccessPermissionTypes',
+    'cef_permission_request_types_t': 'CefPermissionRequestTypes',
+    'cef_permission_request_result_t': 'CefPermissionRequestResult',
+    'cef_preferences_type_t': 'CefPreferencesType',
+    'cef_chrome_page_action_icon_type_t': 'CefChromePageActionIconType',
+    'cef_chrome_toolbar_button_type_t': 'CefChromeToolbarButtonType', 
+    'cef_download_interrupt_reason_t': 'CefDownloadInterruptReason',
+    'cef_content_setting_types_t': 'CefContentSettingTypes',
+    'cef_content_setting_values_t': 'CefContentSettingValues',
+    'cef_zoom_command_t': 'CefZoomCommand',
+    'cef_dom_form_control_type_t': 'CefDomFormControlType',
     }
 
 c2cs_structtypes = { }
@@ -204,6 +219,12 @@ def is_proxy(cls):
     cls_name = cls.get_name()
     if cls_name in classdef:
         return classdef[cls_name]['role'] & ROLE_PROXY == ROLE_PROXY
+    return False
+
+def is_abstract(cls):
+    cls_name = cls.get_name()
+    if cls_name in classdef:
+        return classdef[cls_name].get('abstract', False)
     return False
 
 def is_reversible(cls):

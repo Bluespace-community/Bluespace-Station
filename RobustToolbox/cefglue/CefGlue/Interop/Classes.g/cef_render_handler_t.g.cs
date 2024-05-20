@@ -13,154 +13,207 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_render_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _get_accessibility_handler;
-        internal IntPtr _get_root_screen_rect;
-        internal IntPtr _get_view_rect;
-        internal IntPtr _get_screen_point;
-        internal IntPtr _get_screen_info;
-        internal IntPtr _on_popup_show;
-        internal IntPtr _on_popup_size;
-        internal IntPtr _on_paint;
-        internal IntPtr _on_accelerated_paint;
-        internal IntPtr _start_dragging;
-        internal IntPtr _update_drag_cursor;
-        internal IntPtr _on_scroll_offset_changed;
-        internal IntPtr _on_ime_composition_range_changed;
-        internal IntPtr _on_text_selection_changed;
-        internal IntPtr _on_virtual_keyboard_requested;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_accessibility_handler_t*> _get_accessibility_handler;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_rect_t*, int> _get_root_screen_rect;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_rect_t*, void> _get_view_rect;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, int, int, int*, int*, int> _get_screen_point;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_screen_info_t*, int> _get_screen_info;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, int, void> _on_popup_show;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_rect_t*, void> _on_popup_size;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, CefPaintElementType, UIntPtr, cef_rect_t*, void*, int, int, void> _on_paint;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, CefPaintElementType, UIntPtr, cef_rect_t*, void*, void> _on_accelerated_paint;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, CefHorizontalAlignment, cef_size_t*, void> _get_touch_handle_size;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_touch_handle_state_t*, void> _on_touch_handle_state_changed;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_drag_data_t*, CefDragOperationsMask, int, int, int> _start_dragging;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, CefDragOperationsMask, void> _update_drag_cursor;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, double, double, void> _on_scroll_offset_changed;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_range_t*, UIntPtr, cef_rect_t*, void> _on_ime_composition_range_changed;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, cef_string_t*, cef_range_t*, void> _on_text_selection_changed;
+        internal delegate* unmanaged<cef_render_handler_t*, cef_browser_t*, CefTextInputMode, void> _on_virtual_keyboard_requested;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_render_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_render_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_render_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_render_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate cef_accessibility_handler_t* get_accessibility_handler_delegate(cef_render_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_root_screen_rect_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void get_view_rect_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_screen_point_delegate(cef_render_handler_t* self, cef_browser_t* browser, int viewX, int viewY, int* screenX, int* screenY);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_screen_info_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_screen_info_t* screen_info);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_popup_show_delegate(cef_render_handler_t* self, cef_browser_t* browser, int show);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_popup_size_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_paint_delegate(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* buffer, int width, int height);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_accelerated_paint_delegate(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* shared_handle);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int start_dragging_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_drag_data_t* drag_data, CefDragOperationsMask allowed_ops, int x, int y);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void update_drag_cursor_delegate(cef_render_handler_t* self, cef_browser_t* browser, CefDragOperationsMask operation);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_scroll_offset_changed_delegate(cef_render_handler_t* self, cef_browser_t* browser, double x, double y);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_ime_composition_range_changed_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_text_selection_changed_delegate(cef_render_handler_t* self, cef_browser_t* browser, cef_string_t* selected_text, cef_range_t* selected_range);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_virtual_keyboard_requested_delegate(cef_render_handler_t* self, cef_browser_t* browser, CefTextInputMode input_mode);
-        
-        private static int _sizeof;
-        
-        static cef_render_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_render_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_render_handler_t));
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_render_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_render_handler_t* self)
         {
-            var ptr = (cef_render_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_render_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_render_handler_t* self)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_render_handler_t* self)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static cef_accessibility_handler_t* get_accessibility_handler(cef_render_handler_t* self)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.get_accessibility_handler(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_root_screen_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.get_root_screen_rect(self, browser, rect);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void get_view_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.get_view_rect(self, browser, rect);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_screen_point(cef_render_handler_t* self, cef_browser_t* browser, int viewX, int viewY, int* screenX, int* screenY)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.get_screen_point(self, browser, viewX, viewY, screenX, screenY);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_screen_info(cef_render_handler_t* self, cef_browser_t* browser, cef_screen_info_t* screen_info)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.get_screen_info(self, browser, screen_info);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_popup_show(cef_render_handler_t* self, cef_browser_t* browser, int show)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_popup_show(self, browser, show);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_popup_size(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_popup_size(self, browser, rect);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* buffer, int width, int height)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_paint(self, browser, type, dirtyRectsCount, dirtyRects, buffer, width, height);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_accelerated_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* shared_handle)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_accelerated_paint(self, browser, type, dirtyRectsCount, dirtyRects, shared_handle);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void get_touch_handle_size(cef_render_handler_t* self, cef_browser_t* browser, CefHorizontalAlignment orientation, cef_size_t* size)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.get_touch_handle_size(self, browser, orientation, size);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_touch_handle_state_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_touch_handle_state_t* state)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_touch_handle_state_changed(self, browser, state);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int start_dragging(cef_render_handler_t* self, cef_browser_t* browser, cef_drag_data_t* drag_data, CefDragOperationsMask allowed_ops, int x, int y)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            return obj.start_dragging(self, browser, drag_data, allowed_ops, x, y);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void update_drag_cursor(cef_render_handler_t* self, cef_browser_t* browser, CefDragOperationsMask operation)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.update_drag_cursor(self, browser, operation);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_scroll_offset_changed(cef_render_handler_t* self, cef_browser_t* browser, double x, double y)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_scroll_offset_changed(self, browser, x, y);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_ime_composition_range_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_ime_composition_range_changed(self, browser, selected_range, character_boundsCount, character_bounds);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_text_selection_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_string_t* selected_text, cef_range_t* selected_range)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_text_selection_changed(self, browser, selected_text, selected_range);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_virtual_keyboard_requested(cef_render_handler_t* self, cef_browser_t* browser, CefTextInputMode input_mode)
+        {
+            var obj = (CefRenderHandler)self->_obj.Target;
+            obj.on_virtual_keyboard_requested(self, browser, input_mode);
+        }
+        
+        internal static cef_render_handler_t* Alloc(CefRenderHandler obj)
+        {
+            var ptr = (cef_render_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_render_handler_t));
+            *ptr = default(cef_render_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_render_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_render_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_render_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_render_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_render_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_get_accessibility_handler = &get_accessibility_handler;
+            ptr->_get_root_screen_rect = &get_root_screen_rect;
+            ptr->_get_view_rect = &get_view_rect;
+            ptr->_get_screen_point = &get_screen_point;
+            ptr->_get_screen_info = &get_screen_info;
+            ptr->_on_popup_show = &on_popup_show;
+            ptr->_on_popup_size = &on_popup_size;
+            ptr->_on_paint = &on_paint;
+            ptr->_on_accelerated_paint = &on_accelerated_paint;
+            ptr->_get_touch_handle_size = &get_touch_handle_size;
+            ptr->_on_touch_handle_state_changed = &on_touch_handle_state_changed;
+            ptr->_start_dragging = &start_dragging;
+            ptr->_update_drag_cursor = &update_drag_cursor;
+            ptr->_on_scroll_offset_changed = &on_scroll_offset_changed;
+            ptr->_on_ime_composition_range_changed = &on_ime_composition_range_changed;
+            ptr->_on_text_selection_changed = &on_text_selection_changed;
+            ptr->_on_virtual_keyboard_requested = &on_virtual_keyboard_requested;
             return ptr;
         }
         
         internal static void Free(cef_render_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

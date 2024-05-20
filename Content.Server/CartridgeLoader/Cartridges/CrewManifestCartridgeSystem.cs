@@ -4,6 +4,7 @@ using Content.Shared.CartridgeLoader;
 using Content.Shared.CartridgeLoader.Cartridges;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.CartridgeLoader.Cartridges;
@@ -30,7 +31,7 @@ public sealed class CrewManifestCartridgeSystem : EntitySystem
         SubscribeLocalEvent<CrewManifestCartridgeComponent, CartridgeMessageEvent>(OnUiMessage);
         SubscribeLocalEvent<CrewManifestCartridgeComponent, CartridgeUiReadyEvent>(OnUiReady);
         SubscribeLocalEvent<ProgramInstallationAttempt>(OnInstallationAttempt);
-        _configManager.OnValueChanged(CCVars.CrewManifestUnsecure, OnCrewManifestUnsecureChanged, true);
+        Subs.CVar(_configManager, CCVars.CrewManifestUnsecure, OnCrewManifestUnsecureChanged, true);
     }
 
     /// <summary>
@@ -41,7 +42,7 @@ public sealed class CrewManifestCartridgeSystem : EntitySystem
     /// </remarks>
     private void OnUiMessage(EntityUid uid, CrewManifestCartridgeComponent component, CartridgeMessageEvent args)
     {
-        UpdateUiState(uid, args.LoaderUid, component);
+        UpdateUiState(uid, GetEntity(args.LoaderUid), component);
     }
 
     /// <summary>
@@ -78,20 +79,17 @@ public sealed class CrewManifestCartridgeSystem : EntitySystem
     {
         _unsecureViewersAllowed = unsecureViewersAllowed;
 
-        var allCartridgeLoaders = AllEntityQuery<CartridgeLoaderComponent>();
-
-        while (allCartridgeLoaders.MoveNext(out EntityUid loaderUid, out CartridgeLoaderComponent? comp))
+        var allCartridgeLoaders = AllEntityQuery<CartridgeLoaderComponent, ContainerManagerComponent>();
+        while (allCartridgeLoaders.MoveNext(out var loaderUid, out var comp, out var cont))
         {
             if (_unsecureViewersAllowed)
-                _cartridgeLoader?.InstallProgram(loaderUid, CartridgePrototypeName, false, comp);
-            else
-                _cartridgeLoader?.UninstallProgram(loaderUid, CartridgePrototypeName, comp);
-        }
-    }
+            {
+                _cartridgeLoader.InstallProgram(loaderUid, CartridgePrototypeName, false, comp);
+                return;
+            }
 
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        _configManager.UnsubValueChanged(CCVars.CrewManifestUnsecure, OnCrewManifestUnsecureChanged);
+            if (_cartridgeLoader.TryGetProgram<CrewManifestCartridgeComponent>(loaderUid, out var program, true, comp, cont))
+                _cartridgeLoader.UninstallProgram(loaderUid, program.Value, comp);
+        }
     }
 }

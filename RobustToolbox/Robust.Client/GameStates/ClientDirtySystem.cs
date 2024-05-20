@@ -1,7 +1,6 @@
 using Robust.Client.Timing;
 using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
-using Robust.Shared.Log;
 using Robust.Shared.Utility;
 using System;
 using System.Collections.Generic;
@@ -44,7 +43,7 @@ public sealed class ClientDirtySystem : EntitySystem
             return;
 
         // Client-side entity deletion is not supported and will cause errors.
-        Log.Error($"Predicting the deletion of a networked entity: {ToPrettyString(ev.Entity)}. Trace: {Environment.StackTrace}");
+        Log.Error($"Predicting the deletion of a networked entity: {ToPrettyString(ev.Entity.Owner, ev.Entity.Comp)}. Trace: {Environment.StackTrace}");
     }
 
     private void OnCompRemoved(RemovedComponentEventArgs args)
@@ -54,7 +53,7 @@ public sealed class ClientDirtySystem : EntitySystem
 
         var uid = args.BaseArgs.Owner;
         var comp = args.BaseArgs.Component;
-        if (!_timing.InPrediction || !comp.NetSyncEnabled || IsClientSide(uid))
+        if (!_timing.InPrediction || !comp.NetSyncEnabled || IsClientSide(uid, args.Meta))
             return;
 
         // Was this component added during prediction? If yes, then there is no need to re-add it when resetting.
@@ -72,9 +71,9 @@ public sealed class ClientDirtySystem : EntitySystem
         RemovedComponents.Clear();
     }
 
-    private void OnEntityDirty(EntityUid e)
+    private void OnEntityDirty(Entity<MetaDataComponent> e)
     {
-        if (_timing.InPrediction && !IsClientSide(e))
+        if (_timing.InPrediction && !IsClientSide(e, e))
             DirtyEntities.Add(e);
     }
 }

@@ -1,7 +1,6 @@
 using System.Numerics;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
-using Robust.Client.GameObjects;
 using Robust.Client.Player;
 
 namespace Content.Client.Movement.Systems;
@@ -24,21 +23,25 @@ public sealed class ContentEyeSystem : SharedContentEyeSystem
 
     public void RequestToggleFov()
     {
-        if (_player.LocalPlayer?.ControlledEntity is { } player)
+        if (_player.LocalEntity is { } player)
             RequestToggleFov(player);
     }
 
     public void RequestToggleFov(EntityUid uid, EyeComponent? eye = null)
     {
         if (Resolve(uid, ref eye, false))
-            RequestFov(!eye.DrawFov);
+            RequestEye(!eye.DrawFov, eye.DrawLight);
     }
 
-    public void RequestFov(bool value)
+    public void RequestToggleLight(EntityUid uid, EyeComponent? eye = null)
     {
-        RaisePredictiveEvent(new RequestFovEvent()
-        {
-            Fov = value,
-        });
+        if (Resolve(uid, ref eye, false))
+            RequestEye(eye.DrawFov, !eye.DrawLight);
+    }
+
+
+    public void RequestEye(bool drawFov, bool drawLight)
+    {
+        RaisePredictiveEvent(new RequestEyeEvent(drawFov, drawLight));
     }
 }

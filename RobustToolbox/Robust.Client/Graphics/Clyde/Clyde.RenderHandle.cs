@@ -15,7 +15,7 @@ namespace Robust.Client.Graphics.Clyde
     {
         private RenderHandle _renderHandle = default!;
 
-        private sealed class RenderHandle : IRenderHandle
+        internal sealed class RenderHandle : IRenderHandle
         {
             private readonly Clyde _clyde;
             private readonly IEntityManager _entities;
@@ -36,6 +36,11 @@ namespace Robust.Client.Graphics.Clyde
             public void SetModelTransform(in Matrix3 matrix)
             {
                 _clyde.DrawSetModelTransform(matrix);
+            }
+
+            public Matrix3 GetModelTransform()
+            {
+                return _clyde.DrawGetModelTransform();
             }
 
             public void SetProjView(in Matrix3 proj, in Matrix3 view)
@@ -83,16 +88,21 @@ namespace Robust.Client.Graphics.Clyde
             {
                 var clydeTexture = ExtractTexture(texture, in subRegion, out var csr);
 
-                var (w, h) = clydeTexture.Size;
-                var sr = new Box2(csr.Left / w, (h - csr.Bottom) / h, csr.Right / w, (h - csr.Top) / h);
+                var sr = WorldTextureBoundsToUV(clydeTexture, csr);
 
                 _clyde.DrawTexture(clydeTexture.TextureId, bl, br, tl, tr, in modulate, in sr);
+            }
+
+            internal static Box2 WorldTextureBoundsToUV(ClydeTexture texture, UIBox2 csr)
+            {
+                var (w, h) = texture.Size;
+                return new Box2(csr.Left / w, (h - csr.Bottom) / h, csr.Right / w, (h - csr.Top) / h);
             }
 
             /// <summary>
             /// Converts a subRegion (px) into texture coords (0-1) of a given texture (cells of the textureAtlas).
             /// </summary>
-            private static ClydeTexture ExtractTexture(Texture texture, in UIBox2? subRegion, out UIBox2 sr)
+            internal static ClydeTexture ExtractTexture(Texture texture, in UIBox2? subRegion, out UIBox2 sr)
             {
                 if (texture is AtlasTexture atlas)
                 {
@@ -222,7 +232,14 @@ namespace Robust.Client.Graphics.Clyde
 
                 var clydeShader = (ClydeShaderInstance?) shader;
 
-                _clyde.DrawUseShader(clydeShader?.Handle ?? _clyde._defaultShader.Handle);
+                _clyde.DrawUseShader(clydeShader ?? _clyde._defaultShader);
+            }
+
+            public ShaderInstance? GetShader()
+            {
+                return _clyde._queuedShaderInstance == _clyde._defaultShader
+                    ? null
+                    : _clyde._queuedShaderInstance;
             }
 
             public void Viewport(Box2i viewport)
@@ -285,9 +302,19 @@ namespace Robust.Client.Graphics.Clyde
                     _renderHandle.SetModelTransform(matrix);
                 }
 
+                public override Matrix3 GetTransform()
+                {
+                    return _renderHandle.GetModelTransform();
+                }
+
                 public override void UseShader(ShaderInstance? shader)
                 {
                     _renderHandle.UseShader(shader);
+                }
+
+                public override ShaderInstance? GetShader()
+                {
+                    return _renderHandle.GetShader();
                 }
 
                 public override void DrawPrimitives(DrawPrimitiveTopology primitiveTopology, Texture texture,
@@ -380,9 +407,19 @@ namespace Robust.Client.Graphics.Clyde
                     _renderHandle.SetModelTransform(matrix);
                 }
 
+                public override Matrix3 GetTransform()
+                {
+                    return _renderHandle.GetModelTransform();
+                }
+
                 public override void UseShader(ShaderInstance? shader)
                 {
                     _renderHandle.UseShader(shader);
+                }
+
+                public override ShaderInstance? GetShader()
+                {
+                    return _renderHandle.GetShader();
                 }
 
                 public override void DrawCircle(Vector2 position, float radius, Color color, bool filled = true)

@@ -13,77 +13,117 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_context_menu_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_before_context_menu;
-        internal IntPtr _run_context_menu;
-        internal IntPtr _on_context_menu_command;
-        internal IntPtr _on_context_menu_dismissed;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, cef_context_menu_params_t*, cef_menu_model_t*, void> _on_before_context_menu;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, cef_context_menu_params_t*, cef_menu_model_t*, cef_run_context_menu_callback_t*, int> _run_context_menu;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, cef_context_menu_params_t*, int, CefEventFlags, int> _on_context_menu_command;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, void> _on_context_menu_dismissed;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, cef_point_t*, cef_size_t*, CefQuickMenuEditStateFlags, cef_run_quick_menu_callback_t*, int> _run_quick_menu;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, int, CefEventFlags, int> _on_quick_menu_command;
+        internal delegate* unmanaged<cef_context_menu_handler_t*, cef_browser_t*, cef_frame_t*, void> _on_quick_menu_dismissed;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_context_menu_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_context_menu_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_context_menu_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_context_menu_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_before_context_menu_delegate(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, cef_menu_model_t* model);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int run_context_menu_delegate(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, cef_menu_model_t* model, cef_run_context_menu_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_context_menu_command_delegate(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, int command_id, CefEventFlags event_flags);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_context_menu_dismissed_delegate(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame);
-        
-        private static int _sizeof;
-        
-        static cef_context_menu_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_context_menu_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_context_menu_handler_t));
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_context_menu_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_context_menu_handler_t* self)
         {
-            var ptr = (cef_context_menu_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_context_menu_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_context_menu_handler_t* self)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_context_menu_handler_t* self)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_before_context_menu(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, cef_menu_model_t* model)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            obj.on_before_context_menu(self, browser, frame, @params, model);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int run_context_menu(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, cef_menu_model_t* model, cef_run_context_menu_callback_t* callback)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.run_context_menu(self, browser, frame, @params, model, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_context_menu_command(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_context_menu_params_t* @params, int command_id, CefEventFlags event_flags)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.on_context_menu_command(self, browser, frame, @params, command_id, event_flags);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_context_menu_dismissed(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            obj.on_context_menu_dismissed(self, browser, frame);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int run_quick_menu(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_point_t* location, cef_size_t* size, CefQuickMenuEditStateFlags edit_state_flags, cef_run_quick_menu_callback_t* callback)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.run_quick_menu(self, browser, frame, location, size, edit_state_flags, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_quick_menu_command(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int command_id, CefEventFlags event_flags)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            return obj.on_quick_menu_command(self, browser, frame, command_id, event_flags);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_quick_menu_dismissed(cef_context_menu_handler_t* self, cef_browser_t* browser, cef_frame_t* frame)
+        {
+            var obj = (CefContextMenuHandler)self->_obj.Target;
+            obj.on_quick_menu_dismissed(self, browser, frame);
+        }
+        
+        internal static cef_context_menu_handler_t* Alloc(CefContextMenuHandler obj)
+        {
+            var ptr = (cef_context_menu_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_context_menu_handler_t));
+            *ptr = default(cef_context_menu_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_context_menu_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_context_menu_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_context_menu_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_context_menu_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_context_menu_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_before_context_menu = &on_before_context_menu;
+            ptr->_run_context_menu = &run_context_menu;
+            ptr->_on_context_menu_command = &on_context_menu_command;
+            ptr->_on_context_menu_dismissed = &on_context_menu_dismissed;
+            ptr->_run_quick_menu = &run_quick_menu;
+            ptr->_on_quick_menu_command = &on_quick_menu_command;
+            ptr->_on_quick_menu_dismissed = &on_quick_menu_dismissed;
             return ptr;
         }
         
         internal static void Free(cef_context_menu_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

@@ -4,6 +4,6 @@
 	branch = master
 [submodule "Secrets"]
 	path = Secrets
-	url = https://github.com/Bluespace-community/Secrets
+	url = git@github.com:corvax-project/secrets.git
 	branch = master
 	update = none

@@ -73,6 +73,15 @@ WhitelistedNamespaces:
 # * The API is not *relevant* to content. e.g. System.Type.IsAnsiClass.
 # * I am lazy these API lists are huge dude.
 Types:
+  Avalonia.Metadata:
+    XmlnsDefinitionAttribute:
+      All: True
+  NetSerializer:
+    NetListAsArray`1:
+      Fields:
+      - "System.Collections.Generic.IReadOnlyCollection`1<!0> Value"
+      Methods:
+      - "bool get_HasContents()"
   Lidgren.Network:
     NetBuffer:
       All: True
@@ -274,6 +283,11 @@ Types:
     SortedList`2: { All: True }
     SortedSet`1: { All: True }
     Stack`1: { All: True }
+  System.Collections.Frozen:
+    FrozenDictionary: { All: True }
+    FrozenSet: { All: True }
+    FrozenDictionary`2: { All: True }
+    FrozenSet`1: { All: True }
   System.Collections.Immutable:
     IImmutableDictionary`2: { All: True }
     IImmutableList`1: { All: True }
@@ -428,7 +442,14 @@ Types:
     AddressFamily: { }
   System.Numerics:
     BitOperations: { All: True }
+    Complex: { All: True }
+    Matrix3x2: { All: True }
+    Matrix4x4: { All: True }
+    Plane: { All: True }
+    Quaternion: { All: True }
     Vector2: { All: True }
+    Vector3: { All: True }
+    Vector4: { All: True }
   System.Reflection:
     Assembly:
       Methods:
@@ -486,8 +507,12 @@ Types:
     IsByRefLikeAttribute: { All: True }
     IsExternalInit: { All: True }
     IsReadOnlyAttribute: { All: True }
+    IsUnmanagedAttribute: { All: True }
     IteratorStateMachineAttribute: { All: True }
+    NullableAttribute: { All: True }
+    NullableContextAttribute: { All: True }
     PreserveBaseOverridesAttribute: { All: True }
+    RefSafetyRulesAttribute: { All: True }
     RuntimeCompatibilityAttribute: { All: True }
     RuntimeHelpers: { All: True }
     TaskAwaiter: { All: True }
@@ -611,6 +636,7 @@ Types:
       - "System.Text.Encoding get_UTF7()"
       - "System.Text.Encoding get_UTF8()"
       - "System.Text.Encoding get_UTF32()"
+      - "System.Text.Encoding GetEncoding(string)"
     NormalizationForm: { } # Enum
     Rune: { All: True }
     StringBuilder:
@@ -701,6 +727,9 @@ Types:
         ChunkEnumerator: { All: True }
         AppendInterpolatedStringHandler: { All: True }
     StringRuneEnumerator: { All: True }
+  System.Text.Unicode:
+    UnicodeRange: { All: True }
+    UnicodeRanges: { All: True }
   System.Threading.Tasks:
     Task: { All: True }
     Task`1: { All: True }
@@ -748,7 +777,7 @@ Types:
     Array:
       Methods:
       - "!!0 Find<>(!!0[], System.Predicate`1<!!0>)"
-      - "!!0 Resize<>(!!0[], int)"
+      - "void Resize<>(ref !!0[], int)"
       - "!!1 ConvertAll<,>(!!0[], System.Converter`2<!!0, !!1>)"
       - "!!0[] Empty<>()"
       - "!!0[] FindAll<>(!!0[], System.Predicate`1<!!0>)"
@@ -929,7 +958,9 @@ Types:
     IComparable: { All: True }
     IComparable`1: { All: True }
     IDisposable: { All: True }
-    IEquatable`1: { }
+    IEquatable`1:
+      Methods:
+      - "bool Equals(!0)"
     IFormatProvider: { All: True }
     IFormattable: { All: True }
     Index: { All: True }
@@ -1393,4 +1424,7 @@ Types:
       # should be fine to do All: True, but this has some methods to read filestreams. So just in case this ever adds an extension method that directly opens a file:
       Methods:
       - "!!0 ParseOrThrow<>(Pidgin.Parser`2<char, !!0>, string, System.Func`3<char, Pidgin.SourcePos, Pidgin.SourcePos>)"
+      - "!!0 ParseOrThrow<>(Pidgin.Parser`2<char, !!0>, string, Pidgin.Configuration.IConfiguration`1<char>)"
     SourcePos: { }
+  Pidgin.Configuration:
+    IConfiguration`1: { All: True }

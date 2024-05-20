@@ -67,7 +67,7 @@ public sealed class Gravity2DController : VirtualController
 
         gravity.Gravity = value;
         WakeBodiesRecursive(uid, GetEntityQuery<TransformComponent>(), GetEntityQuery<PhysicsComponent>());
-        Dirty(gravity);
+        Dirty(uid, gravity);
     }
 
     public void SetGravity(MapId mapId, Vector2 value)
@@ -80,7 +80,7 @@ public sealed class Gravity2DController : VirtualController
 
         gravity.Gravity = value;
         WakeBodiesRecursive(mapUid, GetEntityQuery<TransformComponent>(), GetEntityQuery<PhysicsComponent>());
-        Dirty(gravity);
+        Dirty(mapUid, gravity);
     }
 
     private void WakeBodiesRecursive(EntityUid uid, EntityQuery<TransformComponent> xformQuery, EntityQuery<PhysicsComponent> bodyQuery)
@@ -92,11 +92,9 @@ public sealed class Gravity2DController : VirtualController
         }
 
         var xform = xformQuery.GetComponent(uid);
-        var childEnumerator = xform.ChildEnumerator;
-
-        while (childEnumerator.MoveNext(out var child))
+        foreach (var child in xform._children)
         {
-            WakeBodiesRecursive(child.Value, xformQuery, bodyQuery);
+            WakeBodiesRecursive(child, xformQuery, bodyQuery);
         }
     }
 

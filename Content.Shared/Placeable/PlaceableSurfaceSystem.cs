@@ -1,28 +1,19 @@
 using System.Numerics;
-using Content.Shared.Storage.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
-using Robust.Shared.GameStates;
+using Content.Shared.Storage.Components;
 
 namespace Content.Shared.Placeable
 {
     public sealed class PlaceableSurfaceSystem : EntitySystem
     {
         [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
 
         public override void Initialize()
         {
             base.Initialize();
 
             SubscribeLocalEvent<PlaceableSurfaceComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
-            SubscribeLocalEvent<PlaceableSurfaceComponent, ComponentGetState>(OnGetState);
-            SubscribeLocalEvent<PlaceableSurfaceComponent, ComponentHandleState>(OnHandleState);
-        }
-
-        private void OnGetState(EntityUid uid, PlaceableSurfaceComponent component, ref ComponentGetState args)
-        {
-            args.State = new PlaceableSurfaceComponentState(component.IsPlaceable, component.PlaceCentered, component.PositionOffset);
         }
 
         public void SetPlaceable(EntityUid uid, bool isPlaceable, PlaceableSurfaceComponent? surface = null)
@@ -31,7 +22,7 @@ namespace Content.Shared.Placeable
                 return;
 
             surface.IsPlaceable = isPlaceable;
-            Dirty(surface);
+            Dirty(uid, surface);
         }
 
         public void SetPlaceCentered(EntityUid uid, bool placeCentered, PlaceableSurfaceComponent? surface = null)
@@ -40,7 +31,7 @@ namespace Content.Shared.Placeable
                 return;
 
             surface.PlaceCentered = placeCentered;
-            Dirty(surface);
+            Dirty(uid, surface);
         }
 
         public void SetPositionOffset(EntityUid uid, Vector2 offset, PlaceableSurfaceComponent? surface = null)
@@ -49,7 +40,7 @@ namespace Content.Shared.Placeable
                 return;
 
             surface.PositionOffset = offset;
-            Dirty(surface);
+            Dirty(uid, surface);
         }
 
         private void OnAfterInteractUsing(EntityUid uid, PlaceableSurfaceComponent surface, AfterInteractUsingEvent args)
@@ -69,21 +60,11 @@ namespace Content.Shared.Placeable
                 return;
 
             if (surface.PlaceCentered)
-                _transform.SetLocalPosition(args.Used, Transform(uid).LocalPosition + surface.PositionOffset);
+                Transform(args.Used).LocalPosition = Transform(uid).LocalPosition + surface.PositionOffset;
             else
-                _transform.SetCoordinates(args.Used, args.ClickLocation);
+                Transform(args.Used).Coordinates = args.ClickLocation;
 
             args.Handled = true;
-        }
-
-        private void OnHandleState(EntityUid uid, PlaceableSurfaceComponent component, ref ComponentHandleState args)
-        {
-            if (args.Current is not PlaceableSurfaceComponentState state)
-                return;
-
-            component.IsPlaceable = state.IsPlaceable;
-            component.PlaceCentered = state.PlaceCentered;
-            component.PositionOffset = state.PositionOffset;
         }
     }
 }

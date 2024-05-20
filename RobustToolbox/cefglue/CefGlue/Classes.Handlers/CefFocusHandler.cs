@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefFocusHandler
     {
-        private void on_take_focus(cef_focus_handler_t* self, cef_browser_t* browser, int next)
+        internal void on_take_focus(cef_focus_handler_t* self, cef_browser_t* browser, int next)
         {
             CheckSelf(self);
 
@@ -22,17 +22,17 @@
         }
 
         /// <summary>
-        /// Called when the browser component is about to loose focus. For instance, if
-        /// focus was on the last HTML element and the user pressed the TAB key. |next|
-        /// will be true if the browser is giving focus to the next component and false
-        /// if the browser is giving focus to the previous component.
+        /// Called when the browser component is about to loose focus. For instance,
+        /// if focus was on the last HTML element and the user pressed the TAB key.
+        /// |next| will be true if the browser is giving focus to the next component
+        /// and false if the browser is giving focus to the previous component.
         /// </summary>
         protected virtual void OnTakeFocus(CefBrowser browser, bool next)
         {
         }
 
 
-        private int on_set_focus(cef_focus_handler_t* self, cef_browser_t* browser, CefFocusSource source)
+        internal int on_set_focus(cef_focus_handler_t* self, cef_browser_t* browser, CefFocusSource source)
         {
             CheckSelf(self);
 
@@ -52,7 +52,7 @@
         }
 
 
-        private void on_got_focus(cef_focus_handler_t* self, cef_browser_t* browser)
+        internal void on_got_focus(cef_focus_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 

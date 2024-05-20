@@ -13,7 +13,7 @@
     /// </summary>
     public abstract unsafe partial class CefMediaObserver
     {
-        private void on_sinks(cef_media_observer_t* self, UIntPtr sinksCount, cef_media_sink_t** sinks)
+        internal void on_sinks(cef_media_observer_t* self, UIntPtr sinksCount, cef_media_sink_t** sinks)
         {
             CheckSelf(self);
 
@@ -34,7 +34,7 @@
         protected abstract void OnSinks(CefMediaSink[] sinks);
 
 
-        private void on_routes(cef_media_observer_t* self, UIntPtr routesCount, cef_media_route_t** routes)
+        internal void on_routes(cef_media_observer_t* self, UIntPtr routesCount, cef_media_route_t** routes)
         {
             CheckSelf(self);
 
@@ -55,7 +55,7 @@
         protected abstract void OnRoutes(CefMediaRoute[] routes);
 
 
-        private void on_route_state_changed(cef_media_observer_t* self, cef_media_route_t* route, CefMediaRouteConnectionState state)
+        internal void on_route_state_changed(cef_media_observer_t* self, cef_media_route_t* route, CefMediaRouteConnectionState state)
         {
             CheckSelf(self);
 
@@ -69,7 +69,7 @@
         protected abstract void OnRouteStateChanged(CefMediaRoute route, CefMediaRouteConnectionState state);
 
 
-        private void on_route_message_received(cef_media_observer_t* self, cef_media_route_t* route, void* message, UIntPtr message_size)
+        internal void on_route_message_received(cef_media_observer_t* self, cef_media_route_t* route, void* message, UIntPtr message_size)
         {
             CheckSelf(self);
 

@@ -1,4 +1,5 @@
 using Content.Shared.Roles;
+using Robust.Shared.Network;
 using Robust.Shared.Replays;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Markdown.Mapping;
@@ -22,6 +23,7 @@ namespace Content.Shared.GameTicking
         // Probably most useful for replays, round end info, and probably things like lobby menus.
         [ViewVariables]
         public int RoundId { get; protected set; }
+        [ViewVariables] public TimeSpan RoundStartTimeSpan { get; protected set; }
 
         public override void Initialize()
         {
@@ -62,12 +64,20 @@ namespace Content.Shared.GameTicking
         }
     }
 
+    [Serializable, NetSerializable]
+    public sealed class TickerConnectionStatusEvent : EntityEventArgs
+    {
+        public TimeSpan RoundStartTimeSpan { get; }
+        public TickerConnectionStatusEvent(TimeSpan roundStartTimeSpan)
+        {
+            RoundStartTimeSpan = roundStartTimeSpan;
+        }
+    }
 
     [Serializable, NetSerializable]
     public sealed class TickerLobbyStatusEvent : EntityEventArgs
     {
         public bool IsRoundStarted { get; }
-        public string? LobbySong { get; }
         public string? LobbyBackground { get; }
         public bool YouAreReady { get; }
         // UTC.
@@ -75,10 +85,9 @@ namespace Content.Shared.GameTicking
         public TimeSpan RoundStartTimeSpan { get; }
         public bool Paused { get; }
 
-        public TickerLobbyStatusEvent(bool isRoundStarted, string? lobbySong, string? lobbyBackground, bool youAreReady, TimeSpan startTime, TimeSpan preloadTime, TimeSpan roundStartTimeSpan, bool paused)
+        public TickerLobbyStatusEvent(bool isRoundStarted, string? lobbyBackground, bool youAreReady, TimeSpan startTime, TimeSpan preloadTime, TimeSpan roundStartTimeSpan, bool paused)
         {
             IsRoundStarted = isRoundStarted;
-            LobbySong = lobbySong;
             LobbyBackground = lobbyBackground;
             YouAreReady = youAreReady;
             StartTime = startTime;
@@ -124,28 +133,47 @@ namespace Content.Shared.GameTicking
         /// <summary>
         /// The Status of the Player in the lobby (ready, observer, ...)
         /// </summary>
-        public Dictionary<EntityUid, Dictionary<string, uint?>> JobsAvailableByStation { get; }
-        public Dictionary<EntityUid, string> StationNames { get; }
+        public Dictionary<NetEntity, Dictionary<string, uint?>> JobsAvailableByStation { get; }
+        public Dictionary<NetEntity, string> StationNames { get; }
 
-        public TickerJobsAvailableEvent(Dictionary<EntityUid, string> stationNames, Dictionary<EntityUid, Dictionary<string, uint?>> jobsAvailableByStation)
+        public TickerJobsAvailableEvent(Dictionary<NetEntity, string> stationNames, Dictionary<NetEntity, Dictionary<string, uint?>> jobsAvailableByStation)
         {
             StationNames = stationNames;
             JobsAvailableByStation = jobsAvailableByStation;
         }
     }
 
-    [Serializable, NetSerializable]
-    public sealed class RoundEndMessageEvent : EntityEventArgs
+    [Serializable, NetSerializable, DataDefinition]
+    public sealed partial class RoundEndMessageEvent : EntityEventArgs
     {
-        [Serializable, NetSerializable]
-        public struct RoundEndPlayerInfo
+        [Serializable, NetSerializable, DataDefinition]
+        public partial struct RoundEndPlayerInfo
         {
+            [DataField]
             public string PlayerOOCName;
+
+            [DataField]
             public string? PlayerICName;
+
+            [DataField, NonSerialized]
+            public NetUserId? PlayerGuid;
+
             public string Role;
-            public EntityUid? PlayerEntityUid;
+
+            [DataField, NonSerialized]
+            public string[] JobPrototypes;
+
+            [DataField, NonSerialized]
+            public string[] AntagPrototypes;
+
+            public NetEntity? PlayerNetEntity;
+
+            [DataField]
             public bool Antag;
+
+            [DataField]
             public bool Observer;
+
             public bool Connected;
         }
 
@@ -155,7 +183,10 @@ namespace Content.Shared.GameTicking
         public int RoundId { get; }
         public int PlayerCount { get; }
         public RoundEndPlayerInfo[] AllPlayersEndInfo { get; }
-        public string? LobbySong;
+
+        /// <summary>
+        /// Sound gets networked due to how entity lifecycle works between client / server and to avoid clipping.
+        /// </summary>
         public string? RestartSound;
 
         public RoundEndMessageEvent(
@@ -165,7 +196,6 @@ namespace Content.Shared.GameTicking
             int roundId,
             int playerCount,
             RoundEndPlayerInfo[] allPlayersEndInfo,
-            string? lobbySong,
             string? restartSound)
         {
             GamemodeTitle = gamemodeTitle;
@@ -174,11 +204,9 @@ namespace Content.Shared.GameTicking
             RoundId = roundId;
             PlayerCount = playerCount;
             AllPlayersEndInfo = allPlayersEndInfo;
-            LobbySong = lobbySong;
             RestartSound = restartSound;
         }
     }
-
 
     [Serializable, NetSerializable]
     public enum PlayerGameStatus : sbyte
@@ -188,4 +216,3 @@ namespace Content.Shared.GameTicking
         JoinedGame,
     }
 }
-

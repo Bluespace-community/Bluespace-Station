@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefDownloadImageCallback
     {
-        private void on_download_image_finished(cef_download_image_callback_t* self, cef_string_t* image_url, int http_status_code, cef_image_t* image)
+        internal void on_download_image_finished(cef_download_image_callback_t* self, cef_string_t* image_url, int http_status_code, cef_image_t* image)
         {
             CheckSelf(self);
 

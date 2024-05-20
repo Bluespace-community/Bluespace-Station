@@ -21,12 +21,13 @@ public abstract partial class SharedJointSystem : EntitySystem
     [Dependency] private readonly IGameTiming _gameTiming = default!;
 
     private EntityQuery<JointComponent> _jointsQuery;
+    private EntityQuery<PhysicsComponent> _physicsQuery;
     private EntityQuery<JointRelayTargetComponent> _relayQuery;
     private EntityQuery<TransformComponent> _xformQuery;
 
     // To avoid issues with component states we'll queue up all dirty joints and check it every tick to see if
     // we can delete the component.
-    private readonly HashSet<JointComponent> _dirtyJoints = new();
+    private readonly HashSet<Entity<JointComponent>> _dirtyJoints = new();
     protected readonly HashSet<Joint> AddedJoints = new();
     protected readonly List<Joint> ToRemove = new();
 
@@ -37,6 +38,7 @@ public abstract partial class SharedJointSystem : EntitySystem
         _jointsQuery = GetEntityQuery<JointComponent>();
         _relayQuery = GetEntityQuery<JointRelayTargetComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
+        _physicsQuery = GetEntityQuery<PhysicsComponent>();
         UpdatesOutsidePrediction = true;
 
         UpdatesBefore.Add(typeof(SharedPhysicsSystem));
@@ -90,6 +92,10 @@ public abstract partial class SharedJointSystem : EntitySystem
         {
             RemoveJoint(joint);
         }
+
+        // If we're relaying elsewhere then cleanup our old data.
+        if (component.Relay != null && !TerminatingOrDeleted(component.Relay.Value))
+            SetRelay(uid, null, component);
     }
 
     #endregion
@@ -115,8 +121,8 @@ public abstract partial class SharedJointSystem : EntitySystem
 
         foreach (var joint in _dirtyJoints)
         {
-            if (joint.Deleted || joint.JointCount != 0) continue;
-            EntityManager.RemoveComponent<JointComponent>(joint.Owner);
+            if (joint.Comp.Deleted || joint.Comp.JointCount != 0) continue;
+            EntityManager.RemoveComponent<JointComponent>(joint);
         }
 
         _dirtyJoints.Clear();
@@ -132,14 +138,17 @@ public abstract partial class SharedJointSystem : EntitySystem
         var aUid = joint.BodyAUid;
         var bUid = joint.BodyBUid;
 
-        if (!Resolve(aUid, ref bodyA, false) || !Resolve(bUid, ref bodyB, false))
+        if (!_physicsQuery.Resolve(aUid, ref bodyA, false) || !_physicsQuery.Resolve(bUid, ref bodyB, false))
             return;
 
         DebugTools.Assert(Transform(aUid).MapID == Transform(bUid).MapID, "Attempted to initialize cross-map joint");
 
         jointComponentA ??= EnsureComp<JointComponent>(aUid);
         jointComponentB ??= EnsureComp<JointComponent>(bUid);
-        DebugTools.Assert(jointComponentA.Owner == aUid && jointComponentB.Owner == bUid);
+        DebugTools.AssertOwner(aUid, jointComponentA);
+        DebugTools.AssertOwner(bUid, jointComponentB);
+        DebugTools.AssertNotEqual(jointComponentA.Relay, bUid);
+        DebugTools.AssertNotEqual(jointComponentB.Relay, aUid);
 
         var jointsA = jointComponentA.Joints;
         var jointsB = jointComponentB.Joints;
@@ -188,16 +197,17 @@ public abstract partial class SharedJointSystem : EntitySystem
             FilterContactsForJoint(joint, bodyA, bodyB);
         }
 
+        // TODO reduce metadata resolves.
         _physics.WakeBody(aUid, body: bodyA);
         _physics.WakeBody(bUid, body: bodyB);
-        Dirty(bodyA);
-        Dirty(bodyB);
-        Dirty(jointComponentA);
-        Dirty(jointComponentB);
+        Dirty(aUid, bodyA);
+        Dirty(bUid, bodyB);
+        Dirty(aUid, jointComponentA);
+        Dirty(bUid, jointComponentB);
 
         // Also flag these for checking juusssttt in case.
-        _dirtyJoints.Add(jointComponentA);
-        _dirtyJoints.Add(jointComponentB);
+        _dirtyJoints.Add((aUid, jointComponentA));
+        _dirtyJoints.Add((bUid, jointComponentB));
         // Note: creating a joint doesn't wake the bodies.
 
         // Raise broadcast last so we can do both sides of directed first.
@@ -303,7 +313,7 @@ public abstract partial class SharedJointSystem : EntitySystem
     public WeldJoint GetOrCreateWeldJoint(EntityUid bodyA, EntityUid bodyB, string? id = null)
     {
         if (id != null &&
-            EntityManager.TryGetComponent(bodyA, out JointComponent? jointComponent) &&
+            _jointsQuery.TryComp(bodyA, out JointComponent? jointComponent) &&
             jointComponent.Joints.TryGetValue(id, out var weldJoint))
         {
             return (WeldJoint) weldJoint;
@@ -396,17 +406,17 @@ public abstract partial class SharedJointSystem : EntitySystem
 
     protected void AddJoint(Joint joint, PhysicsComponent? bodyA = null, PhysicsComponent? bodyB = null)
     {
-        if (!Resolve(joint.BodyAUid, ref bodyA) || !Resolve(joint.BodyBUid, ref bodyB))
+        if (!_physicsQuery.Resolve(joint.BodyAUid, ref bodyA) || !_physicsQuery.Resolve(joint.BodyBUid, ref bodyB))
             return;
 
         if (!joint.CollideConnected)
             FilterContactsForJoint(joint, bodyA, bodyB);
 
         // Maybe make this method AddOrUpdate so we can have an Add one that explicitly throws if present?
-        var mapidA = EntityManager.GetComponent<TransformComponent>(joint.BodyAUid).MapID;
+        var mapidA = Transform(joint.BodyAUid).MapID;
 
         if (mapidA == MapId.Nullspace ||
-            mapidA != EntityManager.GetComponent<TransformComponent>(joint.BodyBUid).MapID)
+            mapidA != Transform(joint.BodyBUid).MapID)
         {
             Log.Error($"Tried to add joint to ineligible bodies");
             return;
@@ -419,13 +429,7 @@ public abstract partial class SharedJointSystem : EntitySystem
             return;
         }
 
-        // Need to defer this for prediction reasons, yay!
-        // This can also break prediction for reasons, yay!
-        // Whenever a joint is added or removed, you need to check if its queued for adding.
-        // The client can apply multiple game states in a row without running a tick update,
-        // which can lead to things like cross-map joints.
-        // TODO is this actually needed. Its bad for performance coin.
-        AddedJoints.Add(joint);
+        InitJoint(joint, bodyA, bodyB);
 
         if (_gameTiming.IsFirstTimePredicted)
         {
@@ -445,7 +449,8 @@ public abstract partial class SharedJointSystem : EntitySystem
         if (!Resolve(uid, ref xform))
             return;
 
-        Resolve(uid, ref component, ref relay, false);
+        _jointsQuery.Resolve(uid, ref component, false);
+        _relayQuery.Resolve(uid, ref relay, false);
 
         if (relay != null)
         {
@@ -469,7 +474,7 @@ public abstract partial class SharedJointSystem : EntitySystem
     /// </summary>
     public void ClearJoints(EntityUid uid, JointComponent? component = null)
     {
-        if (!Resolve(uid, ref component, false))
+        if (!_jointsQuery.Resolve(uid, ref component, false))
             return;
 
         // TODO PERFORMANCE
@@ -495,15 +500,9 @@ public abstract partial class SharedJointSystem : EntitySystem
         }
     }
 
-    [Obsolete("Use the other ClearJoints overload")]
-    public void ClearJoints(JointComponent joint)
-    {
-        ClearJoints(joint.Owner, joint);
-    }
-
     public void RemoveJoint(EntityUid uid, string id)
     {
-        if (!TryComp<JointComponent>(uid, out var jointComp))
+        if (!_jointsQuery.TryComp(uid, out var jointComp))
             return;
 
         if (!jointComp.Joints.TryGetValue(id, out var joint))
@@ -520,12 +519,12 @@ public abstract partial class SharedJointSystem : EntitySystem
 
         // Originally I logged these but because of prediction the client can just nuke them multiple times in a row
         // because each body has its own JointComponent, bleh.
-        if (!EntityManager.TryGetComponent<JointComponent>(bodyAUid, out var jointComponentA))
+        if (!_jointsQuery.TryComp(bodyAUid, out var jointComponentA))
         {
             return;
         }
 
-        if (!EntityManager.TryGetComponent<JointComponent>(bodyBUid, out var jointComponentB))
+        if (!_jointsQuery.TryComp(bodyBUid, out var jointComponentB))
         {
             return;
         }
@@ -541,7 +540,7 @@ public abstract partial class SharedJointSystem : EntitySystem
         }
 
         // Wake up connected bodies.
-        if (EntityManager.TryGetComponent<PhysicsComponent>(bodyAUid, out var bodyA) &&
+        if (_physicsQuery.TryComp(bodyAUid, out var bodyA) &&
             MetaData(bodyAUid).EntityLifeStage < EntityLifeStage.Terminating)
         {
             var uidA = jointComponentA.Relay ?? bodyAUid;
@@ -557,12 +556,12 @@ public abstract partial class SharedJointSystem : EntitySystem
 
         if (!jointComponentA.Deleted)
         {
-            Dirty(jointComponentA);
+            Dirty(bodyAUid, jointComponentA);
         }
 
         if (!jointComponentB.Deleted)
         {
-            Dirty(jointComponentB);
+            Dirty(bodyBUid, jointComponentB);
         }
 
         if (jointComponentA.Deleted && jointComponentB.Deleted)
@@ -597,15 +596,15 @@ public abstract partial class SharedJointSystem : EntitySystem
         }
 
         // We can't just check up front due to how prediction works.
-        _dirtyJoints.Add(jointComponentA);
-        _dirtyJoints.Add(jointComponentB);
+        _dirtyJoints.Add((bodyAUid, jointComponentA));
+        _dirtyJoints.Add((bodyBUid, jointComponentB));
     }
 
     #endregion
 
     internal void FilterContactsForJoint(Joint joint, PhysicsComponent? bodyA = null, PhysicsComponent? bodyB = null)
     {
-        if (!Resolve(joint.BodyBUid, ref bodyB))
+        if (!_physicsQuery.Resolve(joint.BodyBUid, ref bodyB))
             return;
 
         var node = bodyB.Contacts.First;

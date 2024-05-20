@@ -14,7 +14,7 @@
     /// </summary>
     public abstract unsafe partial class CefUrlRequestClient
     {
-        private void on_request_complete(cef_urlrequest_client_t* self, cef_urlrequest_t* request)
+        internal void on_request_complete(cef_urlrequest_client_t* self, cef_urlrequest_t* request)
         {
             CheckSelf(self);
 
@@ -31,7 +31,7 @@
         protected abstract void OnRequestComplete(CefUrlRequest request);
 
 
-        private void on_upload_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
+        internal void on_upload_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
         {
             CheckSelf(self);
 
@@ -42,14 +42,14 @@
 
         /// <summary>
         /// Notifies the client of upload progress. |current| denotes the number of
-        /// bytes sent so far and |total| is the total size of uploading data (or -1 if
-        /// chunked upload is enabled). This method will only be called if the
+        /// bytes sent so far and |total| is the total size of uploading data (or -1
+        /// if chunked upload is enabled). This method will only be called if the
         /// UR_FLAG_REPORT_UPLOAD_PROGRESS flag is set on the request.
         /// </summary>
         protected abstract void OnUploadProgress(CefUrlRequest request, long current, long total);
 
 
-        private void on_download_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
+        internal void on_download_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
         {
             CheckSelf(self);
 
@@ -60,13 +60,13 @@
 
         /// <summary>
         /// Notifies the client of download progress. |current| denotes the number of
-        /// bytes received up to the call and |total| is the expected total size of the
-        /// response (or -1 if not determined).
+        /// bytes received up to the call and |total| is the expected total size of
+        /// the response (or -1 if not determined).
         /// </summary>
         protected abstract void OnDownloadProgress(CefUrlRequest request, long current, long total);
 
 
-        private void on_download_data(cef_urlrequest_client_t* self, cef_urlrequest_t* request, void* data, UIntPtr data_length)
+        internal void on_download_data(cef_urlrequest_client_t* self, cef_urlrequest_t* request, void* data, UIntPtr data_length)
         {
             CheckSelf(self);
 
@@ -86,7 +86,7 @@
         protected abstract void OnDownloadData(CefUrlRequest request, Stream data);
 
 
-        private int get_auth_credentials(cef_urlrequest_client_t* self, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
+        internal int get_auth_credentials(cef_urlrequest_client_t* self, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -103,9 +103,9 @@
 
         /// <summary>
         /// Called on the IO thread when the browser needs credentials from the user.
-        /// |isProxy| indicates whether the host is a proxy server. |host| contains the
-        /// hostname and |port| contains the port number. Return true to continue the
-        /// request and call CefAuthCallback::Continue() when the authentication
+        /// |isProxy| indicates whether the host is a proxy server. |host| contains
+        /// the hostname and |port| contains the port number. Return true to continue
+        /// the request and call CefAuthCallback::Continue() when the authentication
         /// information is available. If the request has an associated browser/frame
         /// then returning false will result in a call to GetAuthCredentials on the
         /// CefRequestHandler associated with that browser, if any. Otherwise,
@@ -113,8 +113,6 @@
         /// be called for requests initiated from the browser process.
         /// </summary>
         protected virtual bool GetAuthCredentials(bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback)
-        {
-            return false;
-        }
+            => false;
     }
 }

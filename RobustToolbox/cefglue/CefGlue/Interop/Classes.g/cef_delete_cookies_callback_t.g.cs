@@ -13,56 +13,63 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_delete_cookies_callback_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_complete;
+        internal delegate* unmanaged<cef_delete_cookies_callback_t*, int, void> _on_complete;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_delete_cookies_callback_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_delete_cookies_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_delete_cookies_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_delete_cookies_callback_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_complete_delegate(cef_delete_cookies_callback_t* self, int num_deleted);
-        
-        private static int _sizeof;
-        
-        static cef_delete_cookies_callback_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_delete_cookies_callback_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_delete_cookies_callback_t));
+            var obj = (CefDeleteCookiesCallback)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_delete_cookies_callback_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_delete_cookies_callback_t* self)
         {
-            var ptr = (cef_delete_cookies_callback_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_delete_cookies_callback_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefDeleteCookiesCallback)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_delete_cookies_callback_t* self)
+        {
+            var obj = (CefDeleteCookiesCallback)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_delete_cookies_callback_t* self)
+        {
+            var obj = (CefDeleteCookiesCallback)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_complete(cef_delete_cookies_callback_t* self, int num_deleted)
+        {
+            var obj = (CefDeleteCookiesCallback)self->_obj.Target;
+            obj.on_complete(self, num_deleted);
+        }
+        
+        internal static cef_delete_cookies_callback_t* Alloc(CefDeleteCookiesCallback obj)
+        {
+            var ptr = (cef_delete_cookies_callback_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_delete_cookies_callback_t));
+            *ptr = default(cef_delete_cookies_callback_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_delete_cookies_callback_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_delete_cookies_callback_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_delete_cookies_callback_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_delete_cookies_callback_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_delete_cookies_callback_t*, int>)&has_at_least_one_ref;
+            ptr->_on_complete = &on_complete;
             return ptr;
         }
         
         internal static void Free(cef_delete_cookies_callback_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

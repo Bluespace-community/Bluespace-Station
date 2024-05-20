@@ -1,7 +1,17 @@
-﻿- type: gameMapPool
+- type: gameMapPool
   id: CorvaxMapPool
   maps:
     - CorvaxDelta
     - CorvaxAvrite
+    - CorvaxSilly
+    - CorvaxOutpost
+    - CorvaxAstra
+    - CorvaxGelta
+    - CorvaxMaus
     - CorvaxIshimura
+    - CorvaxPaper
+    - CorvaxPilgrim
+    - CorvaxSplit
+    - CorvaxTerra
     - Box
+    - Train

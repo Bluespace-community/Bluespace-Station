@@ -1,4 +1,4 @@
-﻿- type: entity
+- type: entity
   name: pelmeni
   parent: FoodBowlBase
   id: FoodPelmeniBowl
@@ -7,6 +7,11 @@
     - type: FlavorProfile
       flavors:
         - meaty
+    - type: Food
+      trash: FoodBowlBig
+      utensil:
+        - Spoon
+        - Fork
     - type: Sprite
       sprite: Corvax/Objects/Consumable/Food/bowl.rsi
       layers:
@@ -15,9 +20,12 @@
     - type: SolutionContainerManager
       solutions:
         food:
-          maxvol: 30
+          maxVol: 30
           reagents:
             - ReagentId: Nutriment
               Quantity: 10
             - ReagentId: Protein
               Quantity: 20
+    - type: Tag
+      tags:
+      - Meat

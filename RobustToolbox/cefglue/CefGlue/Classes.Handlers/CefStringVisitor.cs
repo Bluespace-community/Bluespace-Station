@@ -11,7 +11,7 @@
     /// </summary>
     public abstract unsafe partial class CefStringVisitor
     {
-        private void visit(cef_string_visitor_t* self, cef_string_t* @string)
+        internal void visit(cef_string_visitor_t* self, cef_string_t* @string)
         {
             CheckSelf(self);
 

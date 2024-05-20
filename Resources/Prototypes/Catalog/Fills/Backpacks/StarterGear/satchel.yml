@@ -9,6 +9,20 @@
 
 - type: entity
   noSpawn: true
+  parent: ClothingBackpackSatchel
+  id: ClothingBackpackSatchelTools
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvival
+      - id: Crowbar
+      - id: Wrench
+      - id: Screwdriver
+      - id: Wirecutter
+      - id: Welder
+      - id: Multitool
+
+- type: entity
   parent: ClothingBackpackSatchelClown
   id: ClothingBackpackSatchelClownFilled
   components:
@@ -27,7 +41,7 @@
       - id: BoxSurvivalSecurity
       - id: Flash
       - id: MagazinePistol
-      
+
 - type: entity
   noSpawn: true
   parent: ClothingBackpackSatchelSecurity
@@ -47,7 +61,6 @@
   components:
   - type: StorageFill
     contents:
-      - id: BoxSurvivalBrigmedic
       - id: Flash
 
 - type: entity
@@ -58,6 +71,16 @@
   - type: StorageFill
     contents:
       - id: BoxSurvivalMedical
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelMedical
+  id: ClothingBackpackSatchelParamedicFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalMedical
+      - id: EmergencyRollerBedSpawnFolded
 
 - type: entity
   noSpawn: true
@@ -192,6 +215,16 @@
       - id: BoxSurvival
       - id: Bible
       - id: RubberStampChaplain
+  
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchel
+  id: ClothingBackpackSatchelLawyerFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvival
+      - id: RubberStampLawyer
 
 - type: entity
   noSpawn: true
@@ -222,9 +255,9 @@
     - type: StorageFill
       contents:
       - id: BoxSurvival
+      - id: BoxForensicPad
       - id: Lighter
       - id: CigPackBlack
-      - id: BoxForensicPad
       - id: HandLabeler
 
 - type: entity
@@ -247,15 +280,6 @@
 
 - type: entity
   noSpawn: true
-  parent: ClothingBackpackSatchel
-  id: ClothingBackpackSatchelDrone
-  components:
-  - type: Tag
-    tags:
-    - InnateDontDelete
-
-- type: entity
-  noSpawn: true
   parent: ClothingBackpackSatchelMime
   id: ClothingBackpackSatchelMimeFilled
   components:
@@ -263,3 +287,14 @@
     contents:
       - id: BoxSurvival
       - id: RubberStampMime
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelHolding
+  id: ClothingBackpackSatchelHoldingAdmin
+  components:
+  - type: StorageFill
+    contents:
+    - id: GasAnalyzer
+    - id: trayScanner
+  - type: Unremoveable

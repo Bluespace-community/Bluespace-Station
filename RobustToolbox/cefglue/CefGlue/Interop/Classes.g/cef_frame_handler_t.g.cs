@@ -13,77 +13,90 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_frame_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_frame_created;
-        internal IntPtr _on_frame_attached;
-        internal IntPtr _on_frame_detached;
-        internal IntPtr _on_main_frame_changed;
+        internal delegate* unmanaged<cef_frame_handler_t*, cef_browser_t*, cef_frame_t*, void> _on_frame_created;
+        internal delegate* unmanaged<cef_frame_handler_t*, cef_browser_t*, cef_frame_t*, int, void> _on_frame_attached;
+        internal delegate* unmanaged<cef_frame_handler_t*, cef_browser_t*, cef_frame_t*, void> _on_frame_detached;
+        internal delegate* unmanaged<cef_frame_handler_t*, cef_browser_t*, cef_frame_t*, cef_frame_t*, void> _on_main_frame_changed;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_frame_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_frame_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_frame_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_frame_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_frame_created_delegate(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_frame_attached_delegate(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int reattached);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_frame_detached_delegate(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_main_frame_changed_delegate(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* old_frame, cef_frame_t* new_frame);
-        
-        private static int _sizeof;
-        
-        static cef_frame_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_frame_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_frame_handler_t));
+            var obj = (CefFrameHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_frame_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_frame_handler_t* self)
         {
-            var ptr = (cef_frame_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_frame_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefFrameHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_frame_handler_t* self)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_frame_handler_t* self)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_frame_created(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            obj.on_frame_created(self, browser, frame);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_frame_attached(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int reattached)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            obj.on_frame_attached(self, browser, frame, reattached);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_frame_detached(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* frame)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            obj.on_frame_detached(self, browser, frame);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_main_frame_changed(cef_frame_handler_t* self, cef_browser_t* browser, cef_frame_t* old_frame, cef_frame_t* new_frame)
+        {
+            var obj = (CefFrameHandler)self->_obj.Target;
+            obj.on_main_frame_changed(self, browser, old_frame, new_frame);
+        }
+        
+        internal static cef_frame_handler_t* Alloc(CefFrameHandler obj)
+        {
+            var ptr = (cef_frame_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_frame_handler_t));
+            *ptr = default(cef_frame_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_frame_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_frame_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_frame_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_frame_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_frame_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_frame_created = &on_frame_created;
+            ptr->_on_frame_attached = &on_frame_attached;
+            ptr->_on_frame_detached = &on_frame_detached;
+            ptr->_on_main_frame_changed = &on_main_frame_changed;
             return ptr;
         }
         
         internal static void Free(cef_frame_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

@@ -31,17 +31,15 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.InteropServices.JavaScript;
-using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Dynamics;
 using Robust.Shared.Physics.Dynamics.Contacts;
 using Robust.Shared.Physics.Events;
+using Robust.Shared.Threading;
 using Robust.Shared.Utility;
 
 namespace Robust.Shared.Physics.Systems;
@@ -122,6 +120,7 @@ public abstract partial class SharedPhysicsSystem
         public bool Return(Contact obj)
         {
             SetContact(obj,
+                false,
                 EntityUid.Invalid, EntityUid.Invalid,
                 string.Empty, string.Empty,
                 null, 0,
@@ -132,6 +131,7 @@ public abstract partial class SharedPhysicsSystem
     }
 
     private static void SetContact(Contact contact,
+        bool enabled,
         EntityUid uidA, EntityUid uidB,
         string fixtureAId, string fixtureBId,
         Fixture? fixtureA, int indexA,
@@ -139,9 +139,9 @@ public abstract partial class SharedPhysicsSystem
         PhysicsComponent? bodyA,
         PhysicsComponent? bodyB)
     {
-        contact.Enabled = true;
+        contact.Enabled = enabled;
         contact.IsTouching = false;
-        contact.Flags = ContactFlags.None;
+        contact.Flags = ContactFlags.None | ContactFlags.PreInit;
         // TOIFlag = false;
 
         contact.EntityA = uidA;
@@ -229,11 +229,11 @@ public abstract partial class SharedPhysicsSystem
         // Edge+Polygon is non-symmetrical due to the way Erin handles collision type registration.
         if ((type1 >= type2 || (type1 == ShapeType.Edge && type2 == ShapeType.Polygon)) && !(type2 == ShapeType.Edge && type1 == ShapeType.Polygon))
         {
-            SetContact(contact, uidA, uidB, fixtureAId, fixtureBId, fixtureA, indexA, fixtureB, indexB, bodyA, bodyB);
+            SetContact(contact, true, uidA, uidB, fixtureAId, fixtureBId, fixtureA, indexA, fixtureB, indexB, bodyA, bodyB);
         }
         else
         {
-            SetContact(contact, uidB, uidA, fixtureBId, fixtureAId, fixtureB, indexB, fixtureA, indexA, bodyB, bodyA);
+            SetContact(contact, true, uidB, uidA, fixtureBId, fixtureAId, fixtureB, indexB, fixtureA, indexA, bodyB, bodyA);
         }
 
         contact.Type = _registers[(int)type1, (int)type2];
@@ -310,18 +310,22 @@ public abstract partial class SharedPhysicsSystem
                  (fixtureB.CollisionMask & fixtureA.CollisionLayer) == 0x0);
     }
 
-    public void DestroyContact(Contact contact)
+    public bool DestroyContact(Contact contact)
     {
+        if ((contact.Flags & ContactFlags.Deleting) != 0x0)
+            return false;
+
         Fixture fixtureA = contact.FixtureA!;
         Fixture fixtureB = contact.FixtureB!;
         var bodyA = contact.BodyA!;
         var bodyB = contact.BodyB!;
         var aUid = contact.EntityA;
         var bUid = contact.EntityB;
+        contact.Flags |= ContactFlags.Deleting;
 
         if (contact.IsTouching)
         {
-            var ev1 = new EndCollideEvent(aUid, bUid, contact.FixtureAId, contact.FixtureBId ,fixtureA, fixtureB, bodyA, bodyB);
+            var ev1 = new EndCollideEvent(aUid, bUid, contact.FixtureAId, contact.FixtureBId, fixtureA, fixtureB, bodyA, bodyB);
             var ev2 = new EndCollideEvent(bUid, aUid, contact.FixtureBId, contact.FixtureAId, fixtureB, fixtureA, bodyB, bodyA);
             RaiseLocalEvent(aUid, ref ev1);
             RaiseLocalEvent(bUid, ref ev2);
@@ -330,10 +334,10 @@ public abstract partial class SharedPhysicsSystem
         if (contact.Manifold.PointCount > 0 && contact.FixtureA?.Hard == true && contact.FixtureB?.Hard == true)
         {
             if (bodyA.CanCollide)
-                SetAwake(aUid, bodyA, true);
+                SetAwake((aUid, bodyA), true);
 
             if (bodyB.CanCollide)
-                SetAwake(bUid, bodyB, true);
+                SetAwake((bUid, bodyB), true);
         }
 
         // Remove from the world
@@ -342,16 +346,19 @@ public abstract partial class SharedPhysicsSystem
         // Remove from body 1
         DebugTools.Assert(fixtureA.Contacts.ContainsKey(fixtureB));
         fixtureA.Contacts.Remove(fixtureB);
-        DebugTools.Assert(bodyA.Contacts.Contains(contact.BodyANode!.Value));
+        DebugTools.Assert(bodyA.Contacts.Contains(contact.BodyANode.Value));
         bodyA.Contacts.Remove(contact.BodyANode);
 
         // Remove from body 2
         DebugTools.Assert(fixtureB.Contacts.ContainsKey(fixtureA));
         fixtureB.Contacts.Remove(fixtureA);
+        DebugTools.Assert(bodyB.Contacts.Contains(contact.BodyBNode.Value));
         bodyB.Contacts.Remove(contact.BodyBNode);
 
         // Insert into the pool.
         _contactPool.Return(contact);
+
+        return true;
     }
 
     internal void CollideContacts()
@@ -371,6 +378,12 @@ public abstract partial class SharedPhysicsSystem
             var contact = node.Value;
             node = node.Next;
 
+            // It's possible the contact was destroyed by content in which case we just skip it.
+            if (!contact.Enabled)
+                continue;
+
+            // No longer pre-init and can be used in the solver.
+            contact.Flags &= ~ContactFlags.PreInit;
             Fixture fixtureA = contact.FixtureA!;
             Fixture fixtureB = contact.FixtureB!;
             int indexA = contact.ChildIndexA;
@@ -425,8 +438,8 @@ public abstract partial class SharedPhysicsSystem
             // Special-case grid contacts.
             if ((contact.Flags & ContactFlags.Grid) != 0x0)
             {
-                var gridABounds = fixtureA.Shape.ComputeAABB(GetPhysicsTransform(uidA, xformA, _xformQuery), 0);
-                var gridBBounds = fixtureB.Shape.ComputeAABB(GetPhysicsTransform(uidB, xformB, _xformQuery), 0);
+                var gridABounds = fixtureA.Shape.ComputeAABB(GetPhysicsTransform(uidA, xformA), 0);
+                var gridBBounds = fixtureB.Shape.ComputeAABB(GetPhysicsTransform(uidB, xformB), 0);
 
                 if (!gridABounds.Intersects(gridBBounds))
                 {
@@ -499,6 +512,7 @@ public abstract partial class SharedPhysicsSystem
             {
                 Log.Error($"Insufficient contact length at 429! Index {index} and length is {contacts.Length}. Tell Sloth");
             }
+
             contacts[index++] = contact;
         }
 
@@ -518,6 +532,12 @@ public abstract partial class SharedPhysicsSystem
             }
 
             var contact = contacts[i];
+
+            // It's possible the contact was disabled above if DestroyContact lead to even more being destroyed.
+            if (!contact.Enabled)
+            {
+                continue;
+            }
 
             switch (status[i])
             {
@@ -577,24 +597,19 @@ public abstract partial class SharedPhysicsSystem
 
     private void BuildManifolds(Contact[] contacts, int count, ContactStatus[] status, Vector2[] worldPoints)
     {
+        if (count == 0)
+            return;
+
         var wake = ArrayPool<bool>.Shared.Rent(count);
 
-        if (count > ContactsPerThread * 2)
+        _parallel.ProcessNow(new ManifoldsJob()
         {
-            var batches = (int) Math.Ceiling((float) count / ContactsPerThread);
-
-            Parallel.For(0, batches, i =>
-            {
-                var start = i * ContactsPerThread;
-                var end = Math.Min(start + ContactsPerThread, count);
-                UpdateContacts(contacts, start, end, status, wake, worldPoints);
-            });
-
-        }
-        else
-        {
-            UpdateContacts(contacts, 0, count, status, wake, worldPoints);
-        }
+            Physics = this,
+            Status = status,
+            WorldPoints = worldPoints,
+            Contacts = contacts,
+            Wake = wake,
+        }, count);
 
         // Can't do this during UpdateContacts due to IoC threading issues.
         for (var i = 0; i < count; i++)
@@ -615,35 +630,49 @@ public abstract partial class SharedPhysicsSystem
         ArrayPool<bool>.Shared.Return(wake);
     }
 
-    private void UpdateContacts(Contact[] contacts, int start, int end, ContactStatus[] status, bool[] wake, Vector2[] worldPoints)
+    private record struct ManifoldsJob : IParallelRobustJob
     {
-        for (var i = start; i < end; i++)
+        public int BatchSize => ContactsPerThread;
+
+        public SharedPhysicsSystem Physics;
+
+        public Contact[] Contacts;
+        public ContactStatus[] Status;
+        public Vector2[] WorldPoints;
+        public bool[] Wake;
+
+        public void Execute(int index)
         {
-            var contact = contacts[i];
+            Physics.UpdateContact(Contacts, index, Status, Wake, WorldPoints);
+        }
+    }
 
-            // TODO: Temporary measure. When Box2D 3.0 comes out expect a major refactor
-            // of everything
-            if (contact.FixtureA == null || contact.FixtureB == null)
-            {
-                Log.Error($"Found a null contact for contact at {i}");
-                status[i] = ContactStatus.NoContact;
-                wake[i] = false;
-                DebugTools.Assert(false);
-                continue;
-            }
+    private void UpdateContact(Contact[] contacts, int index, ContactStatus[] status, bool[] wake, Vector2[] worldPoints)
+    {
+        var contact = contacts[index];
 
-            var uidA = contact.EntityA;
-            var uidB = contact.EntityB;
-            var bodyATransform = GetPhysicsTransform(uidA, Transform(uidA));
-            var bodyBTransform = GetPhysicsTransform(uidB, Transform(uidB));
+        // TODO: Temporary measure. When Box2D 3.0 comes out expect a major refactor
+        // of everything
+        // It's okay past sloth it can't hurt you anymore.
+        // This can happen if DestroyContact is called and content deletes contacts that were already processed.
+        if (!contact.Enabled)
+        {
+            status[index] = ContactStatus.NoContact;
+            wake[index] = false;
+            return;
+        }
 
-            var contactStatus = contact.Update(bodyATransform, bodyBTransform, out wake[i]);
-            status[i] = contactStatus;
+        var uidA = contact.EntityA;
+        var uidB = contact.EntityB;
+        var bodyATransform = GetPhysicsTransform(uidA);
+        var bodyBTransform = GetPhysicsTransform(uidB);
 
-            if (contactStatus == ContactStatus.StartTouching)
-            {
-                worldPoints[i] = Physics.Transform.Mul(bodyATransform, contacts[i].Manifold.LocalPoint);
-            }
+        var contactStatus = contact.Update(bodyATransform, bodyBTransform, out wake[index]);
+        status[index] = contactStatus;
+
+        if (contactStatus == ContactStatus.StartTouching)
+        {
+            worldPoints[index] = Physics.Transform.Mul(bodyATransform, contacts[index].Manifold.LocalPoint);
         }
     }
 

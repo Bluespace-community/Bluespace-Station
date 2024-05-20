@@ -1,6 +1,9 @@
 ﻿using Content.Shared.ActionBlocker;
+using Content.Shared.Buckle.Components;
 using Content.Shared.Movement.Events;
 using Content.Shared.StepTrigger.Systems;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
@@ -21,9 +24,8 @@ public sealed class ChasmSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<ChasmComponent, StepTriggeredEvent>(OnStepTriggered);
+        SubscribeLocalEvent<ChasmComponent, StepTriggeredOffEvent>(OnStepTriggered);
         SubscribeLocalEvent<ChasmComponent, StepTriggerAttemptEvent>(OnStepTriggerAttempt);
-        SubscribeLocalEvent<ChasmFallingComponent, EntityUnpausedEvent>(OnUnpaused);
         SubscribeLocalEvent<ChasmFallingComponent, UpdateCanMoveEvent>(OnUpdateCanMove);
     }
 
@@ -45,30 +47,29 @@ public sealed class ChasmSystem : EntitySystem
         }
     }
 
-    private void OnStepTriggered(EntityUid uid, ChasmComponent component, ref StepTriggeredEvent args)
+    private void OnStepTriggered(EntityUid uid, ChasmComponent component, ref StepTriggeredOffEvent args)
     {
         // already doomed
         if (HasComp<ChasmFallingComponent>(args.Tripper))
             return;
 
-        var falling = AddComp<ChasmFallingComponent>(args.Tripper);
+        StartFalling(uid, component, args.Tripper);
+    }
+
+    public void StartFalling(EntityUid chasm, ChasmComponent component, EntityUid tripper, bool playSound = true)
+    {
+        var falling = AddComp<ChasmFallingComponent>(tripper);
 
         falling.NextDeletionTime = _timing.CurTime + falling.DeletionTime;
-        _blocker.UpdateCanMove(args.Tripper);
-        _audio.PlayPredicted(component.FallingSound, uid, args.Tripper);
+        _blocker.UpdateCanMove(tripper);
+
+        if (playSound)
+            _audio.PlayPredicted(component.FallingSound, chasm, tripper);
     }
 
     private void OnStepTriggerAttempt(EntityUid uid, ChasmComponent component, ref StepTriggerAttemptEvent args)
     {
-        if (TryComp<PhysicsComponent>(args.Tripper, out var physics) && physics.BodyStatus == BodyStatus.InAir)
-            return;
-
         args.Continue = true;
-    }
-
-    private void OnUnpaused(EntityUid uid, ChasmFallingComponent component, ref EntityUnpausedEvent args)
-    {
-        component.NextDeletionTime += args.PausedTime;
     }
 
     private void OnUpdateCanMove(EntityUid uid, ChasmFallingComponent component, UpdateCanMoveEvent args)

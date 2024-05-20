@@ -19,29 +19,9 @@ namespace Xilium.CefGlue
         
         protected object SyncRoot { get { return this; } }
         
-        private cef_drag_handler_t.add_ref_delegate _ds0;
-        private cef_drag_handler_t.release_delegate _ds1;
-        private cef_drag_handler_t.has_one_ref_delegate _ds2;
-        private cef_drag_handler_t.has_at_least_one_ref_delegate _ds3;
-        private cef_drag_handler_t.on_drag_enter_delegate _ds4;
-        private cef_drag_handler_t.on_draggable_regions_changed_delegate _ds5;
-        
         protected CefDragHandler()
         {
-            _self = cef_drag_handler_t.Alloc();
-        
-            _ds0 = new cef_drag_handler_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_drag_handler_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_drag_handler_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_drag_handler_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
-            _ds4 = new cef_drag_handler_t.on_drag_enter_delegate(on_drag_enter);
-            _self->_on_drag_enter = Marshal.GetFunctionPointerForDelegate(_ds4);
-            _ds5 = new cef_drag_handler_t.on_draggable_regions_changed_delegate(on_draggable_regions_changed);
-            _self->_on_draggable_regions_changed = Marshal.GetFunctionPointerForDelegate(_ds5);
+            _self = cef_drag_handler_t.Alloc(this);
         }
         
         ~CefDragHandler()
@@ -58,7 +38,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_drag_handler_t* self)
+        internal void add_ref(cef_drag_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -70,7 +50,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_drag_handler_t* self)
+        internal int release(cef_drag_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -84,12 +64,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_drag_handler_t* self)
+        internal int has_one_ref(cef_drag_handler_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_drag_handler_t* self)
+        internal int has_at_least_one_ref(cef_drag_handler_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

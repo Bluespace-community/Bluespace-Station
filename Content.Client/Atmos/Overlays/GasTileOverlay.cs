@@ -8,6 +8,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
@@ -19,10 +20,9 @@ namespace Content.Client.Atmos.Overlays
     public sealed class GasTileOverlay : Overlay
     {
         private readonly IEntityManager _entManager;
-        private readonly SharedTransformSystem _transform;
         private readonly IMapManager _mapManager;
 
-        public override OverlaySpace Space => OverlaySpace.WorldSpaceEntities;
+        public override OverlaySpace Space => OverlaySpace.WorldSpaceEntities | OverlaySpace.WorldSpaceBelowWorld;
         private readonly ShaderInstance _shader;
 
         // Gas overlays
@@ -49,7 +49,6 @@ namespace Content.Client.Atmos.Overlays
         public GasTileOverlay(GasTileOverlaySystem system, IEntityManager entManager, IResourceCache resourceCache, IPrototypeManager protoMan, SpriteSystem spriteSys)
         {
             _entManager = entManager;
-            _transform = entManager.System<SharedTransformSystem>();
             _mapManager = IoCManager.Resolve<IMapManager>();
             _shader = protoMan.Index<ShaderPrototype>("unshaded").Instance();
             ZIndex = GasOverlayZIndex;
@@ -79,9 +78,10 @@ namespace Content.Client.Atmos.Overlays
                         var rsi = resourceCache.GetResource<RSIResource>(animated.RsiPath).RSI;
                         var stateId = animated.RsiState;
 
-                        if (!rsi.TryGetState(stateId, out var state)) continue;
+                        if (!rsi.TryGetState(stateId, out var state))
+                            continue;
 
-                        _frames[i] = state.GetFrames(RSI.State.Direction.South);
+                        _frames[i] = state.GetFrames(RsiDirection.South);
                         _frameDelays[i] = state.GetDelays();
                         _frameCounter[i] = 0;
                         break;
@@ -99,7 +99,7 @@ namespace Content.Client.Atmos.Overlays
                 if (!fire.TryGetState((i + 1).ToString(), out var state))
                     throw new ArgumentOutOfRangeException($"Fire RSI doesn't have state \"{i}\"!");
 
-                _fireFrames[i] = state.GetFrames(RSI.State.Direction.South);
+                _fireFrames[i] = state.GetFrames(RsiDirection.South);
                 _fireFrameDelays[i] = state.GetDelays();
                 _fireFrameCounter[i] = 0;
             }
@@ -111,7 +111,8 @@ namespace Content.Client.Atmos.Overlays
             for (var i = 0; i < _gasCount; i++)
             {
                 var delays = _frameDelays[i];
-                if (delays.Length == 0) continue;
+                if (delays.Length == 0)
+                    continue;
 
                 var frameCount = _frameCounter[i];
                 _timer[i] += args.DeltaSeconds;
@@ -127,7 +128,8 @@ namespace Content.Client.Atmos.Overlays
             for (var i = 0; i < FireStates; i++)
             {
                 var delays = _fireFrameDelays[i];
-                if (delays.Length == 0) continue;
+                if (delays.Length == 0)
+                    continue;
 
                 var frameCount = _fireFrameCounter[i];
                 _fireTimer[i] += args.DeltaSeconds;
@@ -161,30 +163,14 @@ namespace Content.Client.Atmos.Overlays
             var mapUid = _mapManager.GetMapEntityId(args.MapId);
 
             if (_entManager.TryGetComponent<MapAtmosphereComponent>(mapUid, out var atmos))
-            {
-                var bottomLeft = args.WorldAABB.BottomLeft.Floored();
-                var topRight = args.WorldAABB.TopRight.Ceiled();
+                DrawMapOverlay(drawHandle, args, mapUid, atmos);
 
-                for (var x = bottomLeft.X; x <= topRight.X; x++)
-                {
-                    for (var y = bottomLeft.Y; y <= topRight.Y; y++)
-                    {
-                        var tilePosition = new Vector2(x, y);
-
-                        for (var i = 0; i < atmos.OverlayData.Opacity.Length; i++)
-                        {
-                            var opacity = atmos.OverlayData.Opacity[i];
-
-                            if (opacity > 0)
-                                args.WorldHandle.DrawTexture(_frames[i][_frameCounter[i]], tilePosition, Color.White.WithAlpha(opacity));
-                        }
-                    }
-                }
-            }
+            if (args.Space != OverlaySpace.WorldSpaceEntities)
+                return;
 
             // TODO: WorldBounds callback.
             _mapManager.FindGridsIntersecting(args.MapId, args.WorldAABB, ref gridState,
-                (EntityUid uid, MapGridComponent grid,
+                static (EntityUid uid, MapGridComponent grid,
                     ref (Box2Rotated WorldBounds,
                         DrawingHandleWorld drawHandle,
                         int gasCount,
@@ -202,7 +188,7 @@ namespace Content.Client.Atmos.Overlays
                             return true;
                         }
 
-                    var (_, _, worldMatrix, invMatrix) = _transform.GetWorldPositionRotationMatrixWithInv(gridXform);
+                    var (_, _, worldMatrix, invMatrix) = gridXform.GetWorldPositionRotationMatrixWithInv();
                     state.drawHandle.SetTransform(worldMatrix);
                     var floatBounds = invMatrix.TransformBox(in state.WorldBounds).Enlarged(grid.TileSize);
                     var localBounds = new Box2i(
@@ -264,6 +250,42 @@ namespace Content.Client.Atmos.Overlays
 
             drawHandle.UseShader(null);
             drawHandle.SetTransform(Matrix3.Identity);
+        }
+
+        private void DrawMapOverlay(
+            DrawingHandleWorld handle,
+            OverlayDrawArgs args,
+            EntityUid map,
+            MapAtmosphereComponent atmos)
+        {
+            var mapGrid = _entManager.HasComponent<MapGridComponent>(map);
+
+            // map-grid atmospheres get drawn above grids
+            if (mapGrid && args.Space != OverlaySpace.WorldSpaceEntities)
+                return;
+
+            // Normal map atmospheres get drawn below grids
+            if (!mapGrid && args.Space != OverlaySpace.WorldSpaceBelowWorld)
+                return;
+
+            var bottomLeft = args.WorldAABB.BottomLeft.Floored();
+            var topRight = args.WorldAABB.TopRight.Ceiled();
+
+            for (var x = bottomLeft.X; x <= topRight.X; x++)
+            {
+                for (var y = bottomLeft.Y; y <= topRight.Y; y++)
+                {
+                    var tilePosition = new Vector2(x, y);
+
+                    for (var i = 0; i < atmos.OverlayData.Opacity.Length; i++)
+                    {
+                        var opacity = atmos.OverlayData.Opacity[i];
+
+                        if (opacity > 0)
+                            handle.DrawTexture(_frames[i][_frameCounter[i]], tilePosition, Color.White.WithAlpha(opacity));
+                    }
+                }
+            }
         }
     }
 }

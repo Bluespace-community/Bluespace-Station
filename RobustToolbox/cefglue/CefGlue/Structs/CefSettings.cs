@@ -26,12 +26,13 @@
 
         /// <summary>
         /// The path to a separate executable that will be launched for sub-processes.
-        /// If this value is empty on Windows or Linux then the main process executable
-        /// will be used. If this value is empty on macOS then a helper executable must
-        /// exist at "Contents/Frameworks/&lt;app&gt; Helper.app/Contents/MacOS/&lt;app&gt; Helper"
-        /// in the top-level app bundle. See the comments on CefExecuteProcess() for
-        /// details. If this value is non-empty then it must be an absolute path. Also
-        /// configurable using the "browser-subprocess-path" command-line switch.
+        /// If this value is empty on Windows or Linux then the main process
+        /// executable will be used. If this value is empty on macOS then a helper
+        /// executable must exist at "Contents/Frameworks/&lt;app&gt;
+        /// Helper.app/Contents/MacOS/&lt;app&gt; Helper" in the top-level app bundle. See
+        /// the comments on CefExecuteProcess() for details. If this value is
+        /// non-empty then it must be an absolute path. Also configurable using the
+        /// "browser-subprocess-path" command-line switch.
         /// </summary>
         public string BrowserSubprocessPath { get; set; }
 
@@ -53,17 +54,17 @@
         public string MainBundlePath { get; set; }
 
         /// <summary>
-        /// Set to true to enable use of the Chrome runtime in CEF. This feature is
-        /// considered experimental and is not recommended for most users at this time.
-        /// See issue #2969 for details.
+        /// Set to true to enable use of the Chrome runtime in CEF. This feature
+        /// is considered experimental and is not recommended for most users at this
+        /// time. See issue #2969 for details.
         /// </summary>
         public bool ChromeRuntime { get; set; }
 
         /// <summary>
         /// Set to <c>true</c> to have the browser process message loop run in a separate
         /// thread. If <c>false</c> then the CefDoMessageLoopWork() function must be
-        /// called from your application message loop. This option is only supported on
-        /// Windows and Linux.
+        /// called from your application message loop. This option is only supported
+        /// on Windows and Linux.
         /// </summary>
         public bool MultiThreadedMessageLoop { get; set; }
 
@@ -71,18 +72,19 @@
         /// Set to <c>true</c> to control browser process main (UI) thread message pump
         /// scheduling via the CefBrowserProcessHandler::OnScheduleMessagePumpWork()
         /// callback. This option is recommended for use in combination with the
-        /// CefDoMessageLoopWork() function in cases where the CEF message loop must be
-        /// integrated into an existing application message loop (see additional
-        /// comments and warnings on CefDoMessageLoopWork). Enabling this option is not
-        /// recommended for most users; leave this option disabled and use either the
-        /// CefRunMessageLoop() function or multi_threaded_message_loop if possible.
+        /// CefDoMessageLoopWork() function in cases where the CEF message loop must
+        /// be integrated into an existing application message loop (see additional
+        /// comments and warnings on CefDoMessageLoopWork). Enabling this option is
+        /// not recommended for most users; leave this option disabled and use either
+        /// the CefRunMessageLoop() function or multi_threaded_message_loop if
+        /// possible.
         /// </summary>
         public bool ExternalMessagePump { get; set; }
 
         /// <summary>
-        /// Set to true (1) to enable windowless (off-screen) rendering support. Do not
-        /// enable this value if the application does not use windowless rendering as
-        /// it may reduce rendering performance on some systems.
+        /// Set to true (1) to enable windowless (off-screen) rendering support. Do
+        /// not enable this value if the application does not use windowless rendering
+        /// as it may reduce rendering performance on some systems.
         /// </summary>
         public bool WindowlessRenderingEnabled { get; set; }
 
@@ -98,13 +100,13 @@
         /// The location where data for the global browser cache will be stored on
         /// disk. If this value is non-empty then it must be an absolute path that is
         /// either equal to or a child directory of CefSettings.root_cache_path. If
-        /// this value is empty then browsers will be created in "incognito mode" where
-        /// in-memory caches are used for storage and no data is persisted to disk.
-        /// HTML5 databases such as localStorage will only persist across sessions if a
-        /// cache path is specified. Can be overridden for individual CefRequestContext
-        /// instances via the CefRequestContextSettings.cache_path value. When using
-        /// the Chrome runtime the "default" profile will be used if |cache_path| and
-        /// |root_cache_path| have the same value.
+        /// this value is empty then browsers will be created in "incognito mode"
+        /// where in-memory caches are used for storage and no data is persisted to
+        /// disk. HTML5 databases such as localStorage will only persist across
+        /// sessions if a cache path is specified. Can be overridden for individual
+        /// CefRequestContext instances via the CefRequestContextSettings.cache_path
+        /// value. When using the Chrome runtime the "default" profile will be used if
+        /// |cache_path| and |root_cache_path| have the same value.
         /// </summary>
         public string CachePath { get; set; }
 
@@ -112,30 +114,22 @@
         /// The root directory that all CefSettings.cache_path and
         /// CefRequestContextSettings.cache_path values must have in common. If this
         /// value is empty and CefSettings.cache_path is non-empty then it will
-        /// default to the CefSettings.cache_path value. If this value is non-empty
-        /// then it must be an absolute path. Failure to set this value correctly may
-        /// result in the sandbox blocking read/write access to the cache_path
-        /// directory.
+        /// default to the CefSettings.cache_path value. If both values are empty
+        /// then the default platform-specific directory will be used
+        /// ("~/.config/cef_user_data" directory on Linux, "~/Library/Application
+        /// Support/CEF/User Data" directory on MacOS, "AppData\Local\CEF\User Data"
+        /// directory under the user profile directory on Windows). If this value is
+        /// non-empty then it must be an absolute path. Failure to set this value
+        /// correctly may result in the sandbox blocking read/write access to certain
+        /// files.
         /// </summary>
         public string RootCachePath { get; set; }
 
         /// <summary>
-        /// The location where user data such as the Widevine CDM module and spell
-        /// checking dictionary files will be stored on disk. If this value is empty
-        /// then the default platform-specific user data directory will be used
-        /// ("~/.config/cef_user_data" directory on Linux, "~/Library/Application
-        /// Support/CEF/User Data" directory on MacOS, "AppData\Local\CEF\User Data"
-        /// directory under the user profile directory on Windows). If this value is
-        /// non-empty then it must be an absolute path. When using the Chrome runtime
-        /// this value will be ignored in favor of the |root_cache_path| value.
-        /// </summary>
-        public string UserDataPath { get; set; }
-
-        /// <summary>
         /// To persist session cookies (cookies without an expiry date or validity
-        /// interval) by default when using the global cookie manager set this value to
-        /// true. Session cookies are generally intended to be transient and most
-        /// Web browsers do not persist them. A |cache_path| value must also be
+        /// interval) by default when using the global cookie manager set this value
+        /// to true. Session cookies are generally intended to be transient and
+        /// most Web browsers do not persist them. A |cache_path| value must also be
         /// specified to enable this feature. Also configurable using the
         /// "persist-session-cookies" command-line switch. Can be overridden for
         /// individual CefRequestContext instances via the
@@ -170,20 +164,20 @@
 
         /// <summary>
         /// The locale string that will be passed to WebKit. If empty the default
-        /// locale of "en-US" will be used. This value is ignored on Linux where locale
-        /// is determined using environment variable parsing with the precedence order:
-        /// LANGUAGE, LC_ALL, LC_MESSAGES and LANG. Also configurable using the "lang"
-        /// command-line switch.
+        /// locale of "en-US" will be used. This value is ignored on Linux where
+        /// locale is determined using environment variable parsing with the
+        /// precedence order: LANGUAGE, LC_ALL, LC_MESSAGES and LANG. Also
+        /// configurable using the "lang" command-line switch.
         /// </summary>
         public string Locale { get; set; }
 
         /// <summary>
         /// The directory and file name to use for the debug log. If empty a default
-        /// log file name and location will be used. On Windows and Linux a "debug.log"
-        /// file will be written in the main executable directory. On MacOS a
-        /// "~/Library/Logs/[app name]_debug.log" file will be written where [app name]
-        /// is the name of the main app executable. Also configurable using the
-        /// "log-file" command-line switch.
+        /// log file name and location will be used. On Windows and Linux a
+        /// "debug.log" file will be written in the main executable directory. On
+        /// MacOS a "~/Library/Logs/[app name]_debug.log" file will be written where
+        /// [app name] is the name of the main app executable. Also configurable using
+        /// the "log-file" command-line switch.
         /// </summary>
         public string LogFile { get; set; }
 
@@ -195,6 +189,14 @@
         /// "warning", "error", "fatal" or "disable".
         /// </summary>
         public CefLogSeverity LogSeverity { get; set; }
+
+        /// <summary>
+        /// The log items prepended to each log line. If not set the default log items
+        /// will be used. Also configurable using the "log-items" command-line switch
+        /// with a value of "none" for no log items, or a comma-delimited list of
+        /// values "pid", "tid", "timestamp" or "tickcount" for custom log items.
+        /// </summary>
+        public CefLogItems LogItems { get; set; }
 
         /// <summary>
         /// Custom flags that will be used when initializing the V8 JavaScript engine.
@@ -223,11 +225,11 @@
         public string LocalesDirPath { get; set; }
 
         /// <summary>
-        /// Set to <c>true</c> to disable loading of pack files for resources and locales.
-        /// A resource bundle handler must be provided for the browser and render
-        /// processes via CefApp::GetResourceBundleHandler() if loading of pack files
-        /// is disabled. Also configurable using the "disable-pack-loading" command-
-        /// line switch.
+        /// Set to <c>true</c> to disable loading of pack files for resources and
+        /// locales. A resource bundle handler must be provided for the browser and
+        /// render processes via CefApp::GetResourceBundleHandler() if loading of pack
+        /// files is disabled. Also configurable using the "disable-pack-loading"
+        /// command- line switch.
         /// </summary>
         public bool PackLoadingDisabled { get; set; }
 
@@ -243,10 +245,11 @@
 
         /// <summary>
         /// The number of stack trace frames to capture for uncaught exceptions.
-        /// Specify a positive value to enable the CefV8ContextHandler::
-        /// OnUncaughtException() callback. Specify 0 (default value) and
-        /// OnUncaughtException() will not be called. Also configurable using the
-        /// "uncaught-exception-stack-size" command-line switch.
+        /// Specify a positive value to enable the
+        /// CefRenderProcessHandler::OnUncaughtException() callback. Specify 0
+        /// (default value) and OnUncaughtException() will not be called. Also
+        /// configurable using the "uncaught-exception-stack-size" command-line
+        /// switch.
         /// </summary>
         public int UncaughtExceptionStackSize { get; set; }
 
@@ -254,11 +257,11 @@
         /// Background color used for the browser before a document is loaded and when
         /// no document color is specified. The alpha component must be either fully
         /// opaque (0xFF) or fully transparent (0x00). If the alpha component is fully
-        /// opaque then the RGB components will be used as the background color. If the
-        /// alpha component is fully transparent for a windowed browser then the
+        /// opaque then the RGB components will be used as the background color. If
+        /// the alpha component is fully transparent for a windowed browser then the
         /// default value of opaque white be used. If the alpha component is fully
-        /// transparent for a windowless (off-screen) browser then transparent painting
-        /// will be enabled.
+        /// transparent for a windowless (off-screen) browser then transparent
+        /// painting will be enabled.
         /// </summary>
         public CefColor BackgroundColor { get; set; }
 
@@ -274,13 +277,13 @@
 
         /// <summary>
         /// Comma delimited list of schemes supported by the associated
-        /// CefCookieManager. If |cookieable_schemes_exclude_defaults| is false (0) the
-        /// default schemes ("http", "https", "ws" and "wss") will also be supported.
-        /// Specifying a |cookieable_schemes_list| value and setting
+        /// CefCookieManager. If |cookieable_schemes_exclude_defaults| is false (0)
+        /// the default schemes ("http", "https", "ws" and "wss") will also be
+        /// supported. Not specifying a |cookieable_schemes_list| value and setting
         /// |cookieable_schemes_exclude_defaults| to true (1) will disable all loading
-        /// and saving of cookies for this manager. Can be overridden
-        /// for individual CefRequestContext instances via the
-        /// CefRequestContextSettings.cookieable_schemes_list and
+        /// and saving of cookies. These settings will only impact the global
+        /// CefRequestContext. Individual CefRequestContext instances can be
+        /// configured via the CefRequestContextSettings.cookieable_schemes_list and
         /// CefRequestContextSettings.cookieable_schemes_exclude_defaults values.
         /// </summary>
         public string CookieableSchemesList { get; set; }
@@ -301,7 +304,6 @@
             ptr->command_line_args_disabled = CommandLineArgsDisabled ? 1 : 0;
             cef_string_t.Copy(CachePath, &ptr->cache_path);
             cef_string_t.Copy(RootCachePath, &ptr->root_cache_path);
-            cef_string_t.Copy(UserDataPath, &ptr->user_data_path);
             ptr->persist_session_cookies = PersistSessionCookies ? 1 : 0;
             ptr->persist_user_preferences = PersistUserPreferences ? 1 : 0;
             cef_string_t.Copy(UserAgent, &ptr->user_agent);
@@ -309,6 +311,7 @@
             cef_string_t.Copy(Locale, &ptr->locale);
             cef_string_t.Copy(LogFile, &ptr->log_file);
             ptr->log_severity = LogSeverity;
+            ptr->log_items = LogItems;
             cef_string_t.Copy(JavaScriptFlags, &ptr->javascript_flags);
             cef_string_t.Copy(ResourcesDirPath, &ptr->resources_dir_path);
             cef_string_t.Copy(LocalesDirPath, &ptr->locales_dir_path);
@@ -329,7 +332,6 @@
             libcef.string_clear(&ptr->main_bundle_path);
             libcef.string_clear(&ptr->cache_path);
             libcef.string_clear(&ptr->root_cache_path);
-            libcef.string_clear(&ptr->user_data_path);
             libcef.string_clear(&ptr->user_agent);
             libcef.string_clear(&ptr->user_agent_product);
             libcef.string_clear(&ptr->locale);

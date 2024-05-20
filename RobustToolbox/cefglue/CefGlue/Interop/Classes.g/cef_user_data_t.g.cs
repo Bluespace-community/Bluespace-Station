@@ -14,48 +14,53 @@ namespace Xilium.CefGlue.Interop
     {
         internal cef_base_ref_counted_t _base;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_user_data_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_user_data_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_user_data_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_user_data_t* self);
-        
-        private static int _sizeof;
-        
-        static cef_user_data_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_user_data_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_user_data_t));
+            var obj = (CefUserData)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_user_data_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_user_data_t* self)
         {
-            var ptr = (cef_user_data_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_user_data_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefUserData)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_user_data_t* self)
+        {
+            var obj = (CefUserData)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_user_data_t* self)
+        {
+            var obj = (CefUserData)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        internal static cef_user_data_t* Alloc(CefUserData obj)
+        {
+            var ptr = (cef_user_data_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_user_data_t));
+            *ptr = default(cef_user_data_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_user_data_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_user_data_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_user_data_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_user_data_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_user_data_t*, int>)&has_at_least_one_ref;
             return ptr;
         }
         
         internal static void Free(cef_user_data_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

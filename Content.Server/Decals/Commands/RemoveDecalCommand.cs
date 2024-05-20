@@ -1,13 +1,15 @@
 using Content.Server.Administration;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
-using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 
 namespace Content.Server.Decals.Commands
 {
     [AdminCommand(AdminFlags.Mapping)]
     public sealed class RemoveDecalCommand : IConsoleCommand
     {
+        [Dependency] private readonly IEntityManager _entManager = default!;
+
         public string Command => "rmdecal";
         public string Description => "removes a decal";
         public string Help => $"{Command} <uid> <gridId>";
@@ -25,14 +27,16 @@ namespace Content.Server.Decals.Commands
                 return;
             }
 
-            if (!EntityUid.TryParse(args[1], out var rawGridId) ||
-                !IoCManager.Resolve<IMapManager>().GridExists(rawGridId))
+            if (!NetEntity.TryParse(args[1], out var rawGridIdNet) ||
+                !_entManager.TryGetEntity(rawGridIdNet, out var rawGridId) ||
+                !_entManager.HasComponent<MapGridComponent>(rawGridId))
             {
                 shell.WriteError("Failed parsing gridId.");
+                return;
             }
 
-            var decalSystem = EntitySystem.Get<DecalSystem>();
-            if (decalSystem.RemoveDecal(rawGridId, uid))
+            var decalSystem = _entManager.System<DecalSystem>();
+            if (decalSystem.RemoveDecal(rawGridId.Value, uid))
             {
                 shell.WriteLine($"Successfully removed decal {uid}.");
                 return;

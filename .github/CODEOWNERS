@@ -1,2 +1,7 @@
-#CODEOWNERS 24.12.2023
-* @fedKotikeD
+# Last match in file takes precedence.
+
+# Ping for all PRs
+* @Morb0
+
+# Ping for all PRs that include translations/editing fluent strings
+*.ftl @ficcialfaint

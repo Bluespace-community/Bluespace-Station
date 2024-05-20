@@ -34,7 +34,6 @@
         density: 80
         mask:
         - GhostImpassable
-  - type: HeatResistance
   - type: MovementIgnoreGravity
   - type: Damageable
     damageContainer: Biological
@@ -45,6 +44,9 @@
     voice: Kelthuzad
   - type: Eye
     drawFov: false
+    visMask:
+      - Normal
+      - Ghost
   - type: ContentEye
     maxZoom: 1.2, 1.2
   - type: DoAfter
@@ -56,16 +58,29 @@
     name: ghost-role-information-revenant-name
     description: ghost-role-information-revenant-description
     rules: ghost-role-information-revenant-rules
+    raffle:
+      settings: default
   - type: GhostTakeoverAvailable
   - type: Revenant
+    malfunctionWhitelist:
+      components:
+      # emag lockers open
+      - EntityStorage
+      # emag doors open
+      - Airlock
+      # troll medical to help get kills
+      - StasisBed
+      - EmaggableMedibot
+      # borg become killer
+      - EmagSiliconLaw
   - type: PointLight
     color: MediumPurple
     radius: 2
     softness: 1
   - type: UserInterface
     interfaces:
-    - key: enum.StoreUiKey.Key
-      type: StoreBoundUserInterface
+      enum.StoreUiKey.Key:
+        type: StoreBoundUserInterface
   - type: Visibility
     layer: 2 #ghost vis layer
   - type: Store
@@ -80,3 +95,5 @@
 #    - of
     - RevenantAdjective
     - RevenantTheme
+  - type: Speech
+    speechVerb: Ghost

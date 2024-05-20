@@ -13,56 +13,63 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_scheme_handler_factory_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _create;
+        internal delegate* unmanaged<cef_scheme_handler_factory_t*, cef_browser_t*, cef_frame_t*, cef_string_t*, cef_request_t*, cef_resource_handler_t*> _create;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_scheme_handler_factory_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_scheme_handler_factory_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_scheme_handler_factory_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_scheme_handler_factory_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate cef_resource_handler_t* create_delegate(cef_scheme_handler_factory_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* scheme_name, cef_request_t* request);
-        
-        private static int _sizeof;
-        
-        static cef_scheme_handler_factory_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_scheme_handler_factory_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_scheme_handler_factory_t));
+            var obj = (CefSchemeHandlerFactory)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_scheme_handler_factory_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_scheme_handler_factory_t* self)
         {
-            var ptr = (cef_scheme_handler_factory_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_scheme_handler_factory_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefSchemeHandlerFactory)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_scheme_handler_factory_t* self)
+        {
+            var obj = (CefSchemeHandlerFactory)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_scheme_handler_factory_t* self)
+        {
+            var obj = (CefSchemeHandlerFactory)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static cef_resource_handler_t* create(cef_scheme_handler_factory_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* scheme_name, cef_request_t* request)
+        {
+            var obj = (CefSchemeHandlerFactory)self->_obj.Target;
+            return obj.create(self, browser, frame, scheme_name, request);
+        }
+        
+        internal static cef_scheme_handler_factory_t* Alloc(CefSchemeHandlerFactory obj)
+        {
+            var ptr = (cef_scheme_handler_factory_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_scheme_handler_factory_t));
+            *ptr = default(cef_scheme_handler_factory_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_scheme_handler_factory_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_scheme_handler_factory_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_scheme_handler_factory_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_scheme_handler_factory_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_scheme_handler_factory_t*, int>)&has_at_least_one_ref;
+            ptr->_create = &create;
             return ptr;
         }
         
         internal static void Free(cef_scheme_handler_factory_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

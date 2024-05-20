@@ -13,70 +13,81 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_focus_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_take_focus;
-        internal IntPtr _on_set_focus;
-        internal IntPtr _on_got_focus;
+        internal delegate* unmanaged<cef_focus_handler_t*, cef_browser_t*, int, void> _on_take_focus;
+        internal delegate* unmanaged<cef_focus_handler_t*, cef_browser_t*, CefFocusSource, int> _on_set_focus;
+        internal delegate* unmanaged<cef_focus_handler_t*, cef_browser_t*, void> _on_got_focus;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_focus_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_focus_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_focus_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_focus_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_take_focus_delegate(cef_focus_handler_t* self, cef_browser_t* browser, int next);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_set_focus_delegate(cef_focus_handler_t* self, cef_browser_t* browser, CefFocusSource source);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_got_focus_delegate(cef_focus_handler_t* self, cef_browser_t* browser);
-        
-        private static int _sizeof;
-        
-        static cef_focus_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_focus_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_focus_handler_t));
+            var obj = (CefFocusHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_focus_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_focus_handler_t* self)
         {
-            var ptr = (cef_focus_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_focus_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefFocusHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_focus_handler_t* self)
+        {
+            var obj = (CefFocusHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_focus_handler_t* self)
+        {
+            var obj = (CefFocusHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_take_focus(cef_focus_handler_t* self, cef_browser_t* browser, int next)
+        {
+            var obj = (CefFocusHandler)self->_obj.Target;
+            obj.on_take_focus(self, browser, next);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_set_focus(cef_focus_handler_t* self, cef_browser_t* browser, CefFocusSource source)
+        {
+            var obj = (CefFocusHandler)self->_obj.Target;
+            return obj.on_set_focus(self, browser, source);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_got_focus(cef_focus_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefFocusHandler)self->_obj.Target;
+            obj.on_got_focus(self, browser);
+        }
+        
+        internal static cef_focus_handler_t* Alloc(CefFocusHandler obj)
+        {
+            var ptr = (cef_focus_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_focus_handler_t));
+            *ptr = default(cef_focus_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_focus_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_focus_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_focus_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_focus_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_focus_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_take_focus = &on_take_focus;
+            ptr->_on_set_focus = &on_set_focus;
+            ptr->_on_got_focus = &on_got_focus;
             return ptr;
         }
         
         internal static void Free(cef_focus_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

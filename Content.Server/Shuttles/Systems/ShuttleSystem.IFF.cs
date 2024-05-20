@@ -57,7 +57,7 @@ public sealed partial class ShuttleSystem
             !TryComp<TransformComponent>(uid, out var xform) ||
             !TryComp<IFFComponent>(xform.GridUid, out var iff))
         {
-            _uiSystem.TrySetUiState(uid, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
+            _uiSystem.SetUiState(uid, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
             {
                 AllowedFlags = component.AllowedFlags,
                 Flags = IFFFlags.None,
@@ -65,7 +65,7 @@ public sealed partial class ShuttleSystem
         }
         else
         {
-            _uiSystem.TrySetUiState(uid, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
+            _uiSystem.SetUiState(uid, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
             {
                 AllowedFlags = component.AllowedFlags,
                 Flags = iff.Flags,
@@ -76,12 +76,14 @@ public sealed partial class ShuttleSystem
     protected override void UpdateIFFInterfaces(EntityUid gridUid, IFFComponent component)
     {
         base.UpdateIFFInterfaces(gridUid, component);
-        foreach (var (comp, xform) in EntityQuery<IFFConsoleComponent, TransformComponent>(true))
+
+        var query = AllEntityQuery<IFFConsoleComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var xform))
         {
             if (xform.GridUid != gridUid)
                 continue;
 
-            _uiSystem.TrySetUiState(comp.Owner, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
+            _uiSystem.SetUiState(uid, IFFConsoleUiKey.Key, new IFFConsoleBoundUserInterfaceState()
             {
                 AllowedFlags = comp.AllowedFlags,
                 Flags = component.Flags,

@@ -19,32 +19,9 @@ namespace Xilium.CefGlue
         
         protected object SyncRoot { get { return this; } }
         
-        private cef_download_handler_t.add_ref_delegate _ds0;
-        private cef_download_handler_t.release_delegate _ds1;
-        private cef_download_handler_t.has_one_ref_delegate _ds2;
-        private cef_download_handler_t.has_at_least_one_ref_delegate _ds3;
-        private cef_download_handler_t.can_download_delegate _ds4;
-        private cef_download_handler_t.on_before_download_delegate _ds5;
-        private cef_download_handler_t.on_download_updated_delegate _ds6;
-        
         protected CefDownloadHandler()
         {
-            _self = cef_download_handler_t.Alloc();
-        
-            _ds0 = new cef_download_handler_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_download_handler_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_download_handler_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_download_handler_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
-            _ds4 = new cef_download_handler_t.can_download_delegate(can_download);
-            _self->_can_download = Marshal.GetFunctionPointerForDelegate(_ds4);
-            _ds5 = new cef_download_handler_t.on_before_download_delegate(on_before_download);
-            _self->_on_before_download = Marshal.GetFunctionPointerForDelegate(_ds5);
-            _ds6 = new cef_download_handler_t.on_download_updated_delegate(on_download_updated);
-            _self->_on_download_updated = Marshal.GetFunctionPointerForDelegate(_ds6);
+            _self = cef_download_handler_t.Alloc(this);
         }
         
         ~CefDownloadHandler()
@@ -61,7 +38,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_download_handler_t* self)
+        internal void add_ref(cef_download_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -73,7 +50,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_download_handler_t* self)
+        internal int release(cef_download_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -87,12 +64,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_download_handler_t* self)
+        internal int has_one_ref(cef_download_handler_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_download_handler_t* self)
+        internal int has_at_least_one_ref(cef_download_handler_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

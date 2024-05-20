@@ -4,6 +4,7 @@ using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 using Robust.Shared.ViewVariables;
 
 namespace Robust.Shared.GameObjects;
@@ -47,7 +48,17 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
     /// </summary>
     public static NetEntity Parse(ReadOnlySpan<char> uid)
     {
-        return new NetEntity(int.Parse(uid));
+        if (uid.Length == 0)
+            return default;
+
+        if (uid[0] != 'c')
+            return new NetEntity(int.Parse(uid));
+
+        if (uid.Length == 1)
+            throw new FormatException($"'c' is not a valid NetEntity");
+
+        var id = int.Parse(uid.Slice(1));
+        return new NetEntity(id | ClientEntity);
     }
 
     public static bool TryParse(ReadOnlySpan<char> uid, out NetEntity entity)
@@ -57,7 +68,7 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
             entity = Parse(uid);
             return true;
         }
-        catch (FormatException)
+        catch (Exception ex) when (ex is FormatException or OverflowException)
         {
             entity = Invalid;
             return false;
@@ -84,7 +95,7 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
     public override bool Equals(object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;
-        return obj is EntityUid id && Equals(id);
+        return obj is NetEntity id && Equals(id);
     }
 
     /// <inheritdoc />
@@ -121,6 +132,9 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
     /// <inheritdoc />
     public override string ToString()
     {
+        if (IsClientSide())
+            return $"c{Id & ~ClientEntity}";
+
         return Id.ToString();
     }
 
@@ -135,6 +149,14 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
         ReadOnlySpan<char> format,
         IFormatProvider? provider)
     {
+        if (IsClientSide())
+        {
+            return FormatHelpers.TryFormatInto(
+                destination,
+                out charsWritten,
+                $"c{Id & ~ClientEntity}");
+        }
+
         return Id.TryFormat(destination, out charsWritten);
     }
 
@@ -165,8 +187,11 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
         get => MetaData?.EntityName ?? string.Empty;
         set
         {
-            if (MetaData is {} metaData)
-                metaData.EntityName = value;
+            if (MetaData is { } metaData)
+            {
+                var entManager = IoCManager.Resolve<IEntityManager>();
+                entManager.System<MetaDataSystem>().SetEntityName(entManager.GetEntity(this), value, metaData);
+            }
         }
     }
 
@@ -176,8 +201,11 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
         get => MetaData?.EntityDescription ?? string.Empty;
         set
         {
-            if (MetaData is {} metaData)
-                metaData.EntityDescription = value;
+            if (MetaData is { } metaData)
+            {
+                var entManager = IoCManager.Resolve<IEntityManager>();
+                entManager.System<MetaDataSystem>().SetEntityDescription(entManager.GetEntity(this), value, metaData);
+            }
         }
     }
 
@@ -214,13 +242,15 @@ public readonly struct NetEntity : IEquatable<NetEntity>, IComparable<NetEntity>
     }
 
     [ViewVariables]
-    private EntityUid Uid
+    private EntityUid _uid
     {
         get
         {
             return IoCManager.Resolve<IEntityManager>().GetEntity(this);
         }
     }
+
+    [ViewVariables] private NetEntity _netId => this;
 
     #endregion
 }

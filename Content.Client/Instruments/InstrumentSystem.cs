@@ -6,12 +6,12 @@ using JetBrains.Annotations;
 using Robust.Client.Audio.Midi;
 using Robust.Shared.Audio.Midi;
 using Robust.Shared.Configuration;
+using Robust.Shared.GameStates;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Client.Instruments;
 
-[UsedImplicitly]
 public sealed class InstrumentSystem : SharedInstrumentSystem
 {
     [Dependency] private readonly IClientNetManager _netManager = default!;
@@ -29,22 +29,35 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
         UpdatesOutsidePrediction = true;
 
-        _cfg.OnValueChanged(CCVars.MaxMidiEventsPerBatch, OnMaxMidiEventsPerBatchChanged, true);
-        _cfg.OnValueChanged(CCVars.MaxMidiEventsPerSecond, OnMaxMidiEventsPerSecondChanged, true);
+        Subs.CVar(_cfg, CCVars.MaxMidiEventsPerBatch, OnMaxMidiEventsPerBatchChanged, true);
+        Subs.CVar(_cfg, CCVars.MaxMidiEventsPerSecond, OnMaxMidiEventsPerSecondChanged, true);
 
         SubscribeNetworkEvent<InstrumentMidiEventEvent>(OnMidiEventRx);
         SubscribeNetworkEvent<InstrumentStartMidiEvent>(OnMidiStart);
         SubscribeNetworkEvent<InstrumentStopMidiEvent>(OnMidiStop);
 
         SubscribeLocalEvent<InstrumentComponent, ComponentShutdown>(OnShutdown);
+        SubscribeLocalEvent<InstrumentComponent, ComponentHandleState>(OnHandleState);
     }
 
-    public override void Shutdown()
+    private void OnHandleState(EntityUid uid, SharedInstrumentComponent component, ref ComponentHandleState args)
     {
-        base.Shutdown();
+        if (args.Current is not InstrumentComponentState state)
+            return;
 
-        _cfg.UnsubValueChanged(CCVars.MaxMidiEventsPerBatch, OnMaxMidiEventsPerBatchChanged);
-        _cfg.UnsubValueChanged(CCVars.MaxMidiEventsPerSecond, OnMaxMidiEventsPerSecondChanged);
+        component.Playing = state.Playing;
+        component.InstrumentProgram = state.InstrumentProgram;
+        component.InstrumentBank = state.InstrumentBank;
+        component.AllowPercussion = state.AllowPercussion;
+        component.AllowProgramChange = state.AllowProgramChange;
+        component.RespectMidiLimits = state.RespectMidiLimits;
+        component.Master = EnsureEntity<InstrumentComponent>(state.Master, uid);
+        component.FilteredChannels = state.FilteredChannels;
+
+        if (component.Playing)
+            SetupRenderer(uid, true, component);
+        else
+            EndRenderer(uid, true, component);
     }
 
     private void OnShutdown(EntityUid uid, InstrumentComponent component, ComponentShutdown args)
@@ -54,10 +67,10 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
     public void SetMaster(EntityUid uid, EntityUid? masterUid)
     {
-        if (!TryComp(uid, out InstrumentComponent? instrument))
+        if (!HasComp<InstrumentComponent>(uid))
             return;
 
-        RaiseNetworkEvent(new InstrumentSetMasterEvent(uid, masterUid));
+        RaiseNetworkEvent(new InstrumentSetMasterEvent(GetNetEntity(uid), GetNetEntity(masterUid)));
     }
 
     public void SetFilteredChannel(EntityUid uid, int channel, bool value)
@@ -68,12 +81,22 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
         if(value)
             instrument.Renderer?.SendMidiEvent(RobustMidiEvent.AllNotesOff((byte)channel, 0), false);
 
-        RaiseNetworkEvent(new InstrumentSetFilteredChannelEvent(uid, channel, value));
+        RaiseNetworkEvent(new InstrumentSetFilteredChannelEvent(GetNetEntity(uid), channel, value));
+    }
+
+    public override bool ResolveInstrument(EntityUid uid, ref SharedInstrumentComponent? component)
+    {
+        if (component is not null)
+            return true;
+
+        TryComp<InstrumentComponent>(uid, out var localComp);
+        component = localComp;
+        return component != null;
     }
 
     public override void SetupRenderer(EntityUid uid, bool fromStateChange, SharedInstrumentComponent? component = null)
     {
-        if (!Resolve(uid, ref component))
+        if (!ResolveInstrument(uid, ref component))
             return;
 
         if (component is not InstrumentComponent instrument)
@@ -93,7 +116,6 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
         instrument.SequenceDelay = 0;
         instrument.SequenceStartTick = 0;
-        _midiManager.OcclusionCollisionMask = (int) CollisionGroup.Impassable;
         instrument.Renderer = _midiManager.GetNewRenderer();
 
         if (instrument.Renderer != null)
@@ -109,7 +131,7 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
         if (!fromStateChange)
         {
-            RaiseNetworkEvent(new InstrumentStartMidiEvent(uid));
+            RaiseNetworkEvent(new InstrumentStartMidiEvent(GetNetEntity(uid)));
         }
     }
 
@@ -156,7 +178,7 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
     public override void EndRenderer(EntityUid uid, bool fromStateChange, SharedInstrumentComponent? component = null)
     {
-        if (!Resolve(uid, ref component, false))
+        if (!ResolveInstrument(uid, ref component))
             return;
 
         if (component is not InstrumentComponent instrument)
@@ -189,7 +211,7 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
         if (!fromStateChange && _netManager.IsConnected)
         {
-            RaiseNetworkEvent(new InstrumentStopMidiEvent(uid));
+            RaiseNetworkEvent(new InstrumentStopMidiEvent(GetNetEntity(uid)));
         }
     }
 
@@ -282,7 +304,7 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
     private void OnMidiEventRx(InstrumentMidiEventEvent midiEv)
     {
-        var uid = midiEv.Uid;
+        var uid = GetEntity(midiEv.Uid);
 
         if (!TryComp(uid, out InstrumentComponent? instrument))
             return;
@@ -354,12 +376,12 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
 
     private void OnMidiStart(InstrumentStartMidiEvent ev)
     {
-        SetupRenderer(ev.Uid, true);
+        SetupRenderer(GetEntity(ev.Uid), true);
     }
 
     private void OnMidiStop(InstrumentStopMidiEvent ev)
     {
-        EndRenderer(ev.Uid, true);
+        EndRenderer(GetEntity(ev.Uid), true);
     }
 
     public override void Update(float frameTime)
@@ -425,7 +447,7 @@ public sealed class InstrumentSystem : SharedInstrumentSystem
             if (eventCount == 0)
                 continue;
 
-            RaiseNetworkEvent(new InstrumentMidiEventEvent(uid, events));
+            RaiseNetworkEvent(new InstrumentMidiEventEvent(GetNetEntity(uid), events));
 
             instrument.SentWithinASec += eventCount;
 

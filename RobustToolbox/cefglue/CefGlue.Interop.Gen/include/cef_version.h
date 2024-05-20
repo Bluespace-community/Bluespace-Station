@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Marshall A. Greenblatt. All rights reserved.
+// Copyright (c) 2023 Marshall A. Greenblatt. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -35,18 +35,18 @@
 #ifndef CEF_INCLUDE_CEF_VERSION_H_
 #define CEF_INCLUDE_CEF_VERSION_H_
 
-#define CEF_VERSION "102.0.9+g1c5e658+chromium-102.0.5005.63"
-#define CEF_VERSION_MAJOR 102
-#define CEF_VERSION_MINOR 0
+#define CEF_VERSION "120.1.9+g3914241+chromium-120.0.6099.109"
+#define CEF_VERSION_MAJOR 120
+#define CEF_VERSION_MINOR 1
 #define CEF_VERSION_PATCH 9
-#define CEF_COMMIT_NUMBER 2575
-#define CEF_COMMIT_HASH "1c5e658496551bb289976ea0c6631b1857528673"
-#define COPYRIGHT_YEAR 2022
+#define CEF_COMMIT_NUMBER 2877
+#define CEF_COMMIT_HASH "39142413a0884899851e87fbb257fa58c61b6fba"
+#define COPYRIGHT_YEAR 2023
 
-#define CHROME_VERSION_MAJOR 102
+#define CHROME_VERSION_MAJOR 120
 #define CHROME_VERSION_MINOR 0
-#define CHROME_VERSION_BUILD 5005
-#define CHROME_VERSION_PATCH 63
+#define CHROME_VERSION_BUILD 6099
+#define CHROME_VERSION_PATCH 109
 
 #define DO_MAKE_STRING(p) #p
 #define MAKE_STRING(p) DO_MAKE_STRING(p)

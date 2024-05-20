@@ -16,7 +16,9 @@ using Content.Shared.Atmos.Monitor;
 using Content.Shared.Atmos.Piping.Unary.Components;
 using Content.Shared.Atmos.Visuals;
 using Content.Shared.Audio;
+using Content.Shared.DeviceNetwork;
 using Content.Shared.Examine;
+using Content.Shared.Tools.Systems;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
 
@@ -28,9 +30,10 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly DeviceNetworkSystem _deviceNetSystem = default!;
         [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
+        [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
         [Dependency] private readonly SharedAmbientSoundSystem _ambientSoundSystem = default!;
         [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
+        [Dependency] private readonly WeldableSystem _weldable = default!;
 
         public override void Initialize()
         {
@@ -46,12 +49,13 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             SubscribeLocalEvent<GasVentPumpComponent, ExaminedEvent>(OnExamine);
             SubscribeLocalEvent<GasVentPumpComponent, SignalReceivedEvent>(OnSignalReceived);
             SubscribeLocalEvent<GasVentPumpComponent, GasAnalyzerScanEvent>(OnAnalyzed);
+            SubscribeLocalEvent<GasVentPumpComponent, WeldableChangedEvent>(OnWeldChanged);
         }
 
-        private void OnGasVentPumpUpdated(EntityUid uid, GasVentPumpComponent vent, AtmosDeviceUpdateEvent args)
+        private void OnGasVentPumpUpdated(EntityUid uid, GasVentPumpComponent vent, ref AtmosDeviceUpdateEvent args)
         {
             //Bingo waz here
-            if (vent.Welded)
+            if (_weldable.IsWelded(uid))
             {
                 return;
             }
@@ -63,15 +67,12 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            if (!vent.Enabled
-                || !TryComp(uid, out AtmosDeviceComponent? device)
-                || !TryComp(uid, out NodeContainerComponent? nodeContainer)
-                || !_nodeContainer.TryGetNode(nodeContainer, nodeName, out PipeNode? pipe))
+            if (!vent.Enabled || !_nodeContainer.TryGetNode(uid, nodeName, out PipeNode? pipe))
             {
                 return;
             }
 
-            var environment = _atmosphereSystem.GetContainingMixture(uid, true, true);
+            var environment = _atmosphereSystem.GetContainingMixture(uid, args.Grid, args.Map, true, true);
 
             // We're in an air-blocked tile... Do nothing.
             if (environment == null)
@@ -79,8 +80,8 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 return;
             }
 
-            var timeDelta =  args.dt;
-            var pressureDelta = (float) timeDelta * vent.TargetPressureChange;
+            var timeDelta = args.dt;
+            var pressureDelta = timeDelta * vent.TargetPressureChange;
 
             if (vent.PumpDirection == VentPumpDirection.Releasing && pipe.Air.Pressure > 0)
             {
@@ -162,12 +163,12 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             }
         }
 
-        private void OnGasVentPumpLeaveAtmosphere(EntityUid uid, GasVentPumpComponent component, AtmosDeviceDisabledEvent args)
+        private void OnGasVentPumpLeaveAtmosphere(EntityUid uid, GasVentPumpComponent component, ref AtmosDeviceDisabledEvent args)
         {
             UpdateState(uid, component);
         }
 
-        private void OnGasVentPumpEnterAtmosphere(EntityUid uid, GasVentPumpComponent component, AtmosDeviceEnabledEvent args)
+        private void OnGasVentPumpEnterAtmosphere(EntityUid uid, GasVentPumpComponent component, ref AtmosDeviceEnabledEvent args)
         {
             UpdateState(uid, component);
         }
@@ -253,7 +254,12 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 return;
 
             _ambientSoundSystem.SetAmbience(uid, true);
-            if (!vent.Enabled)
+            if (_weldable.IsWelded(uid))
+            {
+                _ambientSoundSystem.SetAmbience(uid, false);
+                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Welded, appearance);
+            }
+            else if (!vent.Enabled)
             {
                 _ambientSoundSystem.SetAmbience(uid, false);
                 _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Off, appearance);
@@ -265,11 +271,6 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             else if (vent.PumpDirection == VentPumpDirection.Siphoning)
             {
                 _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.In, appearance);
-            }
-            else if (vent.Welded)
-            {
-                _ambientSoundSystem.SetAmbience(uid, false);
-                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Welded, appearance);
             }
         }
 
@@ -291,10 +292,7 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
         /// </summary>
         private void OnAnalyzed(EntityUid uid, GasVentPumpComponent component, GasAnalyzerScanEvent args)
         {
-            if (!EntityManager.TryGetComponent(uid, out NodeContainerComponent? nodeContainer))
-                return;
-
-            var gasMixDict = new Dictionary<string, GasMixture?>();
+            args.GasMixtures ??= new List<(string, GasMixture?)>();
 
             // these are both called pipe, above it switches using this so I duplicated that...?
             var nodeName = component.PumpDirection switch
@@ -303,10 +301,19 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 VentPumpDirection.Siphoning => component.Outlet,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            if (_nodeContainer.TryGetNode(nodeContainer, nodeName, out PipeNode? pipe))
-                gasMixDict.Add(nodeName, pipe.Air);
+            // multiply by volume fraction to make sure to send only the gas inside the analyzed pipe element, not the whole pipe system
+            if (_nodeContainer.TryGetNode(uid, nodeName, out PipeNode? pipe) && pipe.Air.Volume != 0f)
+            {
+                var pipeAirLocal = pipe.Air.Clone();
+                pipeAirLocal.Multiply(pipe.Volume / pipe.Air.Volume);
+                pipeAirLocal.Volume = pipe.Volume;
+                args.GasMixtures.Add((nodeName, pipeAirLocal));
+            }
+        }
 
-            args.GasMixtures = gasMixDict;
+        private void OnWeldChanged(EntityUid uid, GasVentPumpComponent component, ref WeldableChangedEvent args)
+        {
+            UpdateState(uid, component);
         }
     }
 }

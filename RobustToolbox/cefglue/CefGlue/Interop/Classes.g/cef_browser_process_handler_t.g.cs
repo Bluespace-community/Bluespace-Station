@@ -13,77 +13,108 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_browser_process_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_context_initialized;
-        internal IntPtr _on_before_child_process_launch;
-        internal IntPtr _on_schedule_message_pump_work;
-        internal IntPtr _get_default_client;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, CefPreferencesType, cef_preference_registrar_t*, void> _on_register_custom_preferences;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, void> _on_context_initialized;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, cef_command_line_t*, void> _on_before_child_process_launch;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, cef_command_line_t*, cef_string_t*, int> _on_already_running_app_relaunch;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, long, void> _on_schedule_message_pump_work;
+        internal delegate* unmanaged<cef_browser_process_handler_t*, cef_client_t*> _get_default_client;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_browser_process_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_browser_process_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_browser_process_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_browser_process_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_context_initialized_delegate(cef_browser_process_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_before_child_process_launch_delegate(cef_browser_process_handler_t* self, cef_command_line_t* command_line);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_schedule_message_pump_work_delegate(cef_browser_process_handler_t* self, long delay_ms);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate cef_client_t* get_default_client_delegate(cef_browser_process_handler_t* self);
-        
-        private static int _sizeof;
-        
-        static cef_browser_process_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_browser_process_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_browser_process_handler_t));
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_browser_process_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_browser_process_handler_t* self)
         {
-            var ptr = (cef_browser_process_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_browser_process_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_browser_process_handler_t* self)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_browser_process_handler_t* self)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_register_custom_preferences(cef_browser_process_handler_t* self, CefPreferencesType type, cef_preference_registrar_t* registrar)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            obj.on_register_custom_preferences(self, type, registrar);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_context_initialized(cef_browser_process_handler_t* self)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            obj.on_context_initialized(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_before_child_process_launch(cef_browser_process_handler_t* self, cef_command_line_t* command_line)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            obj.on_before_child_process_launch(self, command_line);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_already_running_app_relaunch(cef_browser_process_handler_t* self, cef_command_line_t* command_line, cef_string_t* current_directory)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            return obj.on_already_running_app_relaunch(self, command_line, current_directory);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_schedule_message_pump_work(cef_browser_process_handler_t* self, long delay_ms)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            obj.on_schedule_message_pump_work(self, delay_ms);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static cef_client_t* get_default_client(cef_browser_process_handler_t* self)
+        {
+            var obj = (CefBrowserProcessHandler)self->_obj.Target;
+            return obj.get_default_client(self);
+        }
+        
+        internal static cef_browser_process_handler_t* Alloc(CefBrowserProcessHandler obj)
+        {
+            var ptr = (cef_browser_process_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_browser_process_handler_t));
+            *ptr = default(cef_browser_process_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_browser_process_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_browser_process_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_browser_process_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_browser_process_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_browser_process_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_register_custom_preferences = &on_register_custom_preferences;
+            ptr->_on_context_initialized = &on_context_initialized;
+            ptr->_on_before_child_process_launch = &on_before_child_process_launch;
+            ptr->_on_already_running_app_relaunch = &on_already_running_app_relaunch;
+            ptr->_on_schedule_message_pump_work = &on_schedule_message_pump_work;
+            ptr->_get_default_client = &get_default_client;
             return ptr;
         }
         
         internal static void Free(cef_browser_process_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

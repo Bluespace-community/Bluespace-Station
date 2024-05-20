@@ -8,6 +8,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Network;
 using Robust.Shared.Network.Messages;
+using Robust.Shared.Player;
 using Robust.Shared.Replays;
 using Robust.Shared.Utility;
 
@@ -42,9 +43,9 @@ namespace Robust.Client.GameObjects
             base.FlushEntities();
         }
 
-        EntityUid IClientEntityManagerInternal.CreateEntity(string? prototypeName)
+        EntityUid IClientEntityManagerInternal.CreateEntity(string? prototypeName, out MetaDataComponent metadata)
         {
-            return base.CreateEntity(prototypeName);
+            return base.CreateEntity(prototypeName, out metadata);
         }
 
         void IClientEntityManagerInternal.InitializeEntity(EntityUid entity, MetaDataComponent? meta)
@@ -67,7 +68,7 @@ namespace Robust.Client.GameObjects
 
         public override void QueueDeleteEntity(EntityUid? uid)
         {
-            if (uid == null)
+            if (uid == null || uid == EntityUid.Invalid)
                 return;
 
             if (IsClientSide(uid.Value))
@@ -85,34 +86,71 @@ namespace Robust.Client.GameObjects
         }
 
         /// <inheritdoc />
-        public override void Dirty(EntityUid uid, Component component, MetaDataComponent? meta = null)
+        public override void Dirty(EntityUid uid, IComponent component, MetaDataComponent? meta = null)
+        {
+            Dirty(new Entity<IComponent>(uid, component), meta);
+        }
+
+        /// <inheritdoc />
+        public override void Dirty<T>(Entity<T> ent, MetaDataComponent? meta = null)
         {
             //  Client only dirties during prediction
             if (_gameTiming.InPrediction)
-                base.Dirty(uid, component, meta);
+                base.Dirty(ent, meta);
         }
 
-        public override EntityStringRepresentation ToPrettyString(EntityUid uid)
+        /// <inheritdoc />
+        public override void Dirty<T1, T2>(Entity<T1, T2> ent, MetaDataComponent? meta = null)
         {
-            if (_playerManager.LocalPlayer?.ControlledEntity == uid)
-                return base.ToPrettyString(uid) with { Session = _playerManager.LocalPlayer.Session };
-            else
-                return base.ToPrettyString(uid);
+            if (_gameTiming.InPrediction)
+                base.Dirty(ent, meta);
+        }
+
+        /// <inheritdoc />
+        public override void Dirty<T1, T2, T3>(Entity<T1, T2, T3> ent, MetaDataComponent? meta = null)
+        {
+            if (_gameTiming.InPrediction)
+                base.Dirty(ent, meta);
+        }
+
+        /// <inheritdoc />
+        public override void Dirty<T1, T2, T3, T4>(Entity<T1, T2, T3, T4> ent, MetaDataComponent? meta = null)
+        {
+            if (_gameTiming.InPrediction)
+                base.Dirty(ent, meta);
         }
 
         public override void RaisePredictiveEvent<T>(T msg)
         {
-            var localPlayer = _playerManager.LocalPlayer;
-            DebugTools.AssertNotNull(localPlayer);
+            var session = _playerManager.LocalSession;
+            DebugTools.AssertNotNull(session);
 
             var sequence = _stateMan.SystemMessageDispatched(msg);
             EntityNetManager?.SendSystemNetworkMessage(msg, sequence);
 
             DebugTools.Assert(!_stateMan.IsPredictionEnabled || _gameTiming.InPrediction && _gameTiming.IsFirstTimePredicted || _client.RunLevel != ClientRunLevel.Connected);
 
-            var eventArgs = new EntitySessionEventArgs(localPlayer!.Session);
+            var eventArgs = new EntitySessionEventArgs(session!);
             EventBus.RaiseEvent(EventSource.Local, msg);
             EventBus.RaiseEvent(EventSource.Local, new EntitySessionMessage<T>(eventArgs, msg));
+        }
+
+        /// <inheritdoc />
+        public override void RaiseSharedEvent<T>(T message, EntityUid? user = null)
+        {
+            if (user == null || user != _playerManager.LocalEntity || !_gameTiming.IsFirstTimePredicted)
+                return;
+
+            EventBus.RaiseEvent(EventSource.Local, ref message);
+        }
+
+        /// <inheritdoc />
+        public override void RaiseSharedEvent<T>(T message, ICommonSession? user = null)
+        {
+            if (user == null || user != _playerManager.LocalSession || !_gameTiming.IsFirstTimePredicted)
+                return;
+
+            EventBus.RaiseEvent(EventSource.Local, ref message);
         }
 
         #region IEntityNetworkManager impl
@@ -164,7 +202,7 @@ namespace Robust.Client.GameObjects
         }
 
         /// <inheritdoc />
-        public void SendSystemNetworkMessage(EntityEventArgs message, INetChannel channel)
+        public void SendSystemNetworkMessage(EntityEventArgs message, INetChannel? channel)
         {
             throw new NotSupportedException();
         }
@@ -202,7 +240,7 @@ namespace Robust.Client.GameObjects
         public void DispatchReceivedNetworkMsg(EntityEventArgs msg)
         {
             var sessionType = typeof(EntitySessionMessage<>).MakeGenericType(msg.GetType());
-            var sessionMsg = Activator.CreateInstance(sessionType, new EntitySessionEventArgs(_playerManager.LocalPlayer!.Session), msg)!;
+            var sessionMsg = Activator.CreateInstance(sessionType, new EntitySessionEventArgs(_playerManager.LocalSession!), msg)!;
             ReceivedSystemMessage?.Invoke(this, msg);
             ReceivedSystemMessage?.Invoke(this, sessionMsg);
         }

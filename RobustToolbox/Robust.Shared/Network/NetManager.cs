@@ -249,6 +249,9 @@ namespace Robust.Shared.Network
 
             IsServer = isServer;
 
+            _config.OnValueChanged(CVars.NetLidgrenLogWarning, LidgrenLogWarningChanged);
+            _config.OnValueChanged(CVars.NetLidgrenLogError, LidgrenLogErrorChanged);
+
             _config.OnValueChanged(CVars.NetVerbose, NetVerboseChanged);
             if (isServer)
             {
@@ -269,6 +272,22 @@ namespace Robust.Shared.Network
             if (IsServer)
             {
                 SAGenerateKeys();
+            }
+        }
+
+        private void LidgrenLogWarningChanged(bool newValue)
+        {
+            foreach (var netPeer in _netPeers)
+            {
+                netPeer.Peer.Configuration.SetMessageTypeEnabled(NetIncomingMessageType.WarningMessage, newValue);
+            }
+        }
+
+        private void LidgrenLogErrorChanged(bool newValue)
+        {
+            foreach (var netPeer in _netPeers)
+            {
+                netPeer.Peer.Configuration.SetMessageTypeEnabled(NetIncomingMessageType.ErrorMessage, newValue);
             }
         }
 
@@ -422,6 +441,8 @@ namespace Robust.Shared.Network
             _config.UnsubValueChanged(CVars.NetFakeLagMin, _fakeLagMinChanged);
             _config.UnsubValueChanged(CVars.NetFakeLagRand, _fakeLagRandomChanged);
             _config.UnsubValueChanged(CVars.NetFakeDuplicates, FakeDuplicatesChanged);
+            _config.UnsubValueChanged(CVars.NetLidgrenLogWarning, LidgrenLogWarningChanged);
+            _config.UnsubValueChanged(CVars.NetLidgrenLogError, LidgrenLogErrorChanged);
 
             _serializer.ClientHandshakeComplete -= OnSerializerOnClientHandshakeComplete;
 
@@ -455,7 +476,7 @@ namespace Robust.Shared.Network
 
             foreach (var peer in _netPeers)
             {
-                NetIncomingMessage msg;
+                NetIncomingMessage? msg;
                 var recycle = true;
                 while ((msg = peer.Peer.ReadMessage()) != null)
                 {
@@ -499,7 +520,7 @@ namespace Robust.Shared.Network
                         default:
                             _logger.Warning("{0}: Unhandled incoming packet type from {1}: {2}",
                                 peer.Peer.Configuration.LocalAddress,
-                                msg.SenderConnection.RemoteEndPoint,
+                                msg.SenderConnection?.RemoteEndPoint,
                                 msg.MessageType);
                             break;
                     }
@@ -576,6 +597,25 @@ namespace Robust.Shared.Network
             // ping the client once per second.
             netConfig.PingInterval = 1f;
 
+            netConfig.SetMessageTypeEnabled(
+                NetIncomingMessageType.WarningMessage,
+                _config.GetCVar(CVars.NetLidgrenLogWarning));
+
+            netConfig.SetMessageTypeEnabled(
+                NetIncomingMessageType.ErrorMessage,
+                _config.GetCVar(CVars.NetLidgrenLogError));
+
+            var poolSize = _config.GetCVar(CVars.NetPoolSize);
+
+            if (poolSize <= 0)
+            {
+                netConfig.UseMessageRecycling = false;
+            }
+            else
+            {
+                netConfig.RecycledCacheMaxCount = Math.Min(poolSize, 8192);
+            }
+
             netConfig.SendBufferSize = _config.GetCVar(CVars.NetSendBufferSize);
             netConfig.ReceiveBufferSize = _config.GetCVar(CVars.NetReceiveBufferSize);
             netConfig.MaximumHandshakeAttempts = 5;
@@ -608,6 +648,7 @@ namespace Robust.Shared.Network
 
             // MTU stuff.
             netConfig.MaximumTransmissionUnit = _config.GetCVar(CVars.NetMtu);
+            netConfig.MaximumTransmissionUnitV6 = _config.GetCVar(CVars.NetMtuIpv6);
             netConfig.AutoExpandMTU = _config.GetCVar(CVars.NetMtuExpand);
             netConfig.ExpandMTUFrequency = _config.GetCVar(CVars.NetMtuExpandFrequency);
             netConfig.ExpandMTUFailAttempts = _config.GetCVar(CVars.NetMtuExpandFailAttempts);
@@ -683,6 +724,8 @@ namespace Robust.Shared.Network
         private void HandleStatusChanged(NetPeerData peer, NetIncomingMessage msg)
         {
             var sender = msg.SenderConnection;
+            DebugTools.Assert(sender != null);
+
             var newStatus = (NetConnectionStatus) msg.ReadByte();
             var reason = msg.ReadString();
             _logger.Debug("{ConnectionEndpoint}: Status changed to {ConnectionStatus}, reason: {ConnectionStatusReason}",
@@ -807,6 +850,8 @@ namespace Robust.Shared.Network
 
         private bool DispatchNetMessage(NetIncomingMessage msg)
         {
+            DebugTools.Assert(msg.SenderConnection != null);
+
             var peer = msg.SenderConnection.Peer;
             if (peer.Status == NetPeerStatus.ShutdownRequested)
             {
@@ -1136,12 +1181,6 @@ namespace Robust.Shared.Network
             }
 
             public ClientDisconnectedException(string message, Exception inner) : base(message, inner)
-            {
-            }
-
-            protected ClientDisconnectedException(
-                SerializationInfo info,
-                StreamingContext context) : base(info, context)
             {
             }
         }

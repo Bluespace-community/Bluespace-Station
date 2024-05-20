@@ -69,14 +69,13 @@ public sealed class ExplosionGridTileFlood : ExplosionTileFlood
             return;
 
         _needToTransform = true;
-        var transform = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedTransformSystem>();
+        var transform = IoCManager.Resolve<IEntityManager>().GetComponent<TransformComponent>(Grid.Owner);
         var size = (float) Grid.TileSize;
 
         _matrix.R0C2 = size / 2;
         _matrix.R1C2 = size / 2;
-        var (_, rot, mat) = transform.GetWorldPositionRotationMatrix(Grid.Owner);
-        _matrix *= mat * Matrix3.Invert(spaceMatrix);
-        var relativeAngle = rot - spaceAngle;
+        _matrix *= transform.WorldMatrix * Matrix3.Invert(spaceMatrix);
+        var relativeAngle = transform.WorldRotation - spaceAngle;
         _offset = relativeAngle.RotateVec(new Vector2(size / 4, size / 4));
     }
 
@@ -272,7 +271,7 @@ public sealed class ExplosionGridTileFlood : ExplosionTileFlood
                 var direction = (AtmosDirection) (1 << i);
                 if (ignoreTileBlockers || !blockedDirections.IsFlagSet(direction))
                 {
-                    ProcessNewTile(iteration, tile.Offset(direction), direction.GetOpposite());
+                    ProcessNewTile(iteration, tile.Offset(direction), i.ToOppositeDir());
                 }
             }
 
@@ -301,7 +300,7 @@ public sealed class ExplosionGridTileFlood : ExplosionTileFlood
                 var direction = (AtmosDirection) (1 << i);
                 if (blockedDirections.IsFlagSet(direction))
                 {
-                    list.Add((tile.Offset(direction), direction.GetOpposite()));
+                    list.Add((tile.Offset(direction), i.ToOppositeDir()));
                 }
             }
         }

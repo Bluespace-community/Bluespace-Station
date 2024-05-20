@@ -52,6 +52,11 @@ namespace Content.Client.Kitchen.UI
             _menu?.HandleMessage(message);
         }
 
+        public void ToggleAutoMode(BaseButton.ButtonEventArgs args)
+        {
+            SendMessage(new ReagentGrinderToggleAutoModeMessage());
+        }
+
         public void StartGrinding(BaseButton.ButtonEventArgs? _ = null)
         {
             SendMessage(new ReagentGrinderStartMessage(GrinderProgram.Grind));
@@ -74,7 +79,7 @@ namespace Content.Client.Kitchen.UI
 
         public void EjectChamberContent(EntityUid uid)
         {
-            SendMessage(new ReagentGrinderEjectChamberContentMessage(uid));
+            SendMessage(new ReagentGrinderEjectChamberContentMessage(EntMan.GetNetEntity(uid)));
         }
     }
 }

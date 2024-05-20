@@ -13,84 +13,99 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_urlrequest_client_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_request_complete;
-        internal IntPtr _on_upload_progress;
-        internal IntPtr _on_download_progress;
-        internal IntPtr _on_download_data;
-        internal IntPtr _get_auth_credentials;
+        internal delegate* unmanaged<cef_urlrequest_client_t*, cef_urlrequest_t*, void> _on_request_complete;
+        internal delegate* unmanaged<cef_urlrequest_client_t*, cef_urlrequest_t*, long, long, void> _on_upload_progress;
+        internal delegate* unmanaged<cef_urlrequest_client_t*, cef_urlrequest_t*, long, long, void> _on_download_progress;
+        internal delegate* unmanaged<cef_urlrequest_client_t*, cef_urlrequest_t*, void*, UIntPtr, void> _on_download_data;
+        internal delegate* unmanaged<cef_urlrequest_client_t*, int, cef_string_t*, int, cef_string_t*, cef_string_t*, cef_auth_callback_t*, int> _get_auth_credentials;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_urlrequest_client_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_urlrequest_client_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_urlrequest_client_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_urlrequest_client_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_request_complete_delegate(cef_urlrequest_client_t* self, cef_urlrequest_t* request);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_upload_progress_delegate(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_download_progress_delegate(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_download_data_delegate(cef_urlrequest_client_t* self, cef_urlrequest_t* request, void* data, UIntPtr data_length);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_auth_credentials_delegate(cef_urlrequest_client_t* self, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback);
-        
-        private static int _sizeof;
-        
-        static cef_urlrequest_client_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_urlrequest_client_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_urlrequest_client_t));
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_urlrequest_client_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_urlrequest_client_t* self)
         {
-            var ptr = (cef_urlrequest_client_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_urlrequest_client_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_urlrequest_client_t* self)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_urlrequest_client_t* self)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_request_complete(cef_urlrequest_client_t* self, cef_urlrequest_t* request)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            obj.on_request_complete(self, request);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_upload_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            obj.on_upload_progress(self, request, current, total);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_download_progress(cef_urlrequest_client_t* self, cef_urlrequest_t* request, long current, long total)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            obj.on_download_progress(self, request, current, total);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_download_data(cef_urlrequest_client_t* self, cef_urlrequest_t* request, void* data, UIntPtr data_length)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            obj.on_download_data(self, request, data, data_length);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_auth_credentials(cef_urlrequest_client_t* self, int isProxy, cef_string_t* host, int port, cef_string_t* realm, cef_string_t* scheme, cef_auth_callback_t* callback)
+        {
+            var obj = (CefUrlRequestClient)self->_obj.Target;
+            return obj.get_auth_credentials(self, isProxy, host, port, realm, scheme, callback);
+        }
+        
+        internal static cef_urlrequest_client_t* Alloc(CefUrlRequestClient obj)
+        {
+            var ptr = (cef_urlrequest_client_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_urlrequest_client_t));
+            *ptr = default(cef_urlrequest_client_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_urlrequest_client_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_urlrequest_client_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_urlrequest_client_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_urlrequest_client_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_urlrequest_client_t*, int>)&has_at_least_one_ref;
+            ptr->_on_request_complete = &on_request_complete;
+            ptr->_on_upload_progress = &on_upload_progress;
+            ptr->_on_download_progress = &on_download_progress;
+            ptr->_on_download_data = &on_download_data;
+            ptr->_get_auth_credentials = &get_auth_credentials;
             return ptr;
         }
         
         internal static void Free(cef_urlrequest_client_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

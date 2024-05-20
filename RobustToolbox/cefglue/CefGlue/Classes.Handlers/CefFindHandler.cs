@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefFindHandler
     {
-        private void on_find_result(cef_find_handler_t* self, cef_browser_t* browser, int identifier, int count, cef_rect_t* selectionRect, int activeMatchOrdinal, int finalUpdate)
+        internal void on_find_result(cef_find_handler_t* self, cef_browser_t* browser, int identifier, int count, cef_rect_t* selectionRect, int activeMatchOrdinal, int finalUpdate)
         {
             CheckSelf(self);
 

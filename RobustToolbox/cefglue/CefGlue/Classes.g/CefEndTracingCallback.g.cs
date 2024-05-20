@@ -19,26 +19,9 @@ namespace Xilium.CefGlue
         
         protected object SyncRoot { get { return this; } }
         
-        private cef_end_tracing_callback_t.add_ref_delegate _ds0;
-        private cef_end_tracing_callback_t.release_delegate _ds1;
-        private cef_end_tracing_callback_t.has_one_ref_delegate _ds2;
-        private cef_end_tracing_callback_t.has_at_least_one_ref_delegate _ds3;
-        private cef_end_tracing_callback_t.on_end_tracing_complete_delegate _ds4;
-        
         protected CefEndTracingCallback()
         {
-            _self = cef_end_tracing_callback_t.Alloc();
-        
-            _ds0 = new cef_end_tracing_callback_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_end_tracing_callback_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_end_tracing_callback_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_end_tracing_callback_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
-            _ds4 = new cef_end_tracing_callback_t.on_end_tracing_complete_delegate(on_end_tracing_complete);
-            _self->_on_end_tracing_complete = Marshal.GetFunctionPointerForDelegate(_ds4);
+            _self = cef_end_tracing_callback_t.Alloc(this);
         }
         
         ~CefEndTracingCallback()
@@ -55,7 +38,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_end_tracing_callback_t* self)
+        internal void add_ref(cef_end_tracing_callback_t* self)
         {
             lock (SyncRoot)
             {
@@ -67,7 +50,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_end_tracing_callback_t* self)
+        internal int release(cef_end_tracing_callback_t* self)
         {
             lock (SyncRoot)
             {
@@ -81,12 +64,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_end_tracing_callback_t* self)
+        internal int has_one_ref(cef_end_tracing_callback_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_end_tracing_callback_t* self)
+        internal int has_at_least_one_ref(cef_end_tracing_callback_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

@@ -7,8 +7,8 @@
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Implement this interface to handle HTTP server requests. A new thread will be
-    /// created for each CefServer::CreateServer call (the "dedicated server
+    /// Implement this interface to handle HTTP server requests. A new thread will
+    /// be created for each CefServer::CreateServer call (the "dedicated server
     /// thread"), and the methods of this class will be called on that thread. It is
     /// therefore recommended to use a different CefServerHandler instance for each
     /// CefServer::CreateServer call to avoid thread safety issues in the
@@ -16,7 +16,7 @@
     /// </summary>
     public abstract unsafe partial class CefServerHandler
     {
-        private void on_server_created(cef_server_handler_t* self, cef_server_t* server)
+        internal void on_server_created(cef_server_handler_t* self, cef_server_t* server)
         {
             CheckSelf(self);
 
@@ -34,7 +34,7 @@
         protected abstract void OnServerCreated(CefServer server);
 
 
-        private void on_server_destroyed(cef_server_handler_t* self, cef_server_t* server)
+        internal void on_server_destroyed(cef_server_handler_t* self, cef_server_t* server)
         {
             CheckSelf(self);
 
@@ -51,7 +51,7 @@
         protected abstract void OnServerDestroyed(CefServer server);
 
 
-        private void on_client_connected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
+        internal void on_client_connected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
         {
             CheckSelf(self);
 
@@ -67,7 +67,7 @@
         protected abstract void OnClientConnected(CefServer server, int connectionId);
 
 
-        private void on_client_disconnected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
+        internal void on_client_disconnected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
         {
             CheckSelf(self);
 
@@ -86,7 +86,7 @@
         protected abstract void OnClientDisconnected(CefServer server, int connectionId);
 
 
-        private void on_http_request(cef_server_handler_t* self, cef_server_t* server, int connection_id, cef_string_t* client_address, cef_request_t* request)
+        internal void on_http_request(cef_server_handler_t* self, cef_server_t* server, int connection_id, cef_string_t* client_address, cef_request_t* request)
         {
             CheckSelf(self);
 
@@ -107,7 +107,7 @@
         protected abstract void OnHttpRequest(CefServer server, int connectionId, string clientAddress, CefRequest request);
 
 
-        private void on_web_socket_request(cef_server_handler_t* self, cef_server_t* server, int connection_id, cef_string_t* client_address, cef_request_t* request, cef_callback_t* callback)
+        internal void on_web_socket_request(cef_server_handler_t* self, cef_server_t* server, int connection_id, cef_string_t* client_address, cef_request_t* request, cef_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -120,22 +120,23 @@
         }
 
         /// <summary>
-        /// Called when |server| receives a WebSocket request. |connection_id| uniquely
-        /// identifies the connection, |client_address| is the requesting IPv4 or
-        /// IPv6 client address including port number, and |request| contains the
-        /// request contents (URL, method, headers and optional POST data). Execute
-        /// |callback| either synchronously or asynchronously to accept or decline the
-        /// WebSocket connection. If the request is accepted then OnWebSocketConnected
-        /// will be called after the WebSocket has connected and incoming messages will
-        /// be delivered to the OnWebSocketMessage callback. If the request is declined
-        /// then the client will be disconnected and OnClientDisconnected will be
-        /// called. Call the CefServer::SendWebSocketMessage method after receiving the
+        /// Called when |server| receives a WebSocket request. |connection_id|
+        /// uniquely identifies the connection, |client_address| is the requesting
+        /// IPv4 or IPv6 client address including port number, and |request| contains
+        /// the request contents (URL, method, headers and optional POST data).
+        /// Execute |callback| either synchronously or asynchronously to accept or
+        /// decline the WebSocket connection. If the request is accepted then
+        /// OnWebSocketConnected will be called after the WebSocket has connected and
+        /// incoming messages will be delivered to the OnWebSocketMessage callback. If
+        /// the request is declined then the client will be disconnected and
+        /// OnClientDisconnected will be called. Call the
+        /// CefServer::SendWebSocketMessage method after receiving the
         /// OnWebSocketConnected callback to respond with WebSocket messages.
         /// </summary>
         protected abstract void OnWebSocketRequest(CefServer server, int connectionId, string clientAddress, CefRequest request, CefCallback callback);
 
 
-        private void on_web_socket_connected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
+        internal void on_web_socket_connected(cef_server_handler_t* self, cef_server_t* server, int connection_id)
         {
             CheckSelf(self);
 
@@ -151,7 +152,7 @@
         protected abstract void OnWebSocketConnected(CefServer server, int connectionId);
 
 
-        private void on_web_socket_message(cef_server_handler_t* self, cef_server_t* server, int connection_id, void* data, UIntPtr data_size)
+        internal void on_web_socket_message(cef_server_handler_t* self, cef_server_t* server, int connection_id, void* data, UIntPtr data_size)
         {
             CheckSelf(self);
 

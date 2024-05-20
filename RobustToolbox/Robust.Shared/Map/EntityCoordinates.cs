@@ -3,6 +3,7 @@ using System.Numerics;
 using JetBrains.Annotations;
 using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
@@ -36,6 +37,12 @@ namespace Robust.Shared.Map
         ///     Location of the Y axis local to the entity.
         /// </summary>
         public float Y => Position.Y;
+
+        public EntityCoordinates()
+        {
+            EntityId = EntityUid.Invalid;
+            Position = Vector2.Zero;
+        }
 
         /// <summary>
         ///     Constructs a new instance of <see cref="EntityCoordinates"/>.
@@ -104,7 +111,7 @@ namespace Robust.Shared.Map
         [Obsolete("Use ToMapPos() with TransformSystem overload")]
         public Vector2 ToMapPos(IEntityManager entityManager)
         {
-            return ToMap(entityManager).Position;
+            return ToMap(entityManager, entityManager.System<SharedTransformSystem>()).Position;
         }
 
         /// <summary>
@@ -154,7 +161,7 @@ namespace Robust.Shared.Map
         [Obsolete("Use overload with other parameter order.")]
         public static EntityCoordinates FromMap(IEntityManager entityManager, EntityUid entityUid, MapCoordinates coordinates)
         {
-            return FromMap(entityUid, coordinates, entityManager);
+            return FromMap(entityUid, coordinates, entityManager.System<SharedTransformSystem>(), entityManager);
         }
 
         /// <summary>
@@ -194,7 +201,7 @@ namespace Robust.Shared.Map
             var gridIdOpt = GetGridUid(entityManager);
             if (gridIdOpt is { } gridId && gridId.IsValid())
             {
-                var grid = mapManager.GetGrid(gridId);
+                var grid = entityManager.GetComponent<MapGridComponent>(gridId);
                 return mapSystem.GetTileRef(gridId, grid, this).GridIndices;
             }
 
@@ -337,6 +344,9 @@ namespace Robust.Shared.Map
             var mapCoordinates = ToMap(entityManager, transformSystem);
             var otherMapCoordinates = otherCoordinates.ToMap(entityManager, transformSystem);
 
+            if (mapCoordinates.MapId != otherMapCoordinates.MapId)
+                return false;
+
             return mapCoordinates.InRange(otherMapCoordinates, range);
         }
 
@@ -366,14 +376,34 @@ namespace Robust.Shared.Map
             EntityCoordinates otherCoordinates,
             out float distance)
         {
+            if (TryDelta(entityManager, transformSystem, otherCoordinates, out var delta))
+            {
+                distance = delta.Length();
+                return true;
+            }
+
             distance = 0f;
+            return false;
+        }
+
+        /// <summary>
+        ///     Tries to calculate the distance vector between two sets of coordinates.
+        /// </summary>
+        /// <returns>True if it was possible to calculate the distance</returns>
+        public bool TryDelta(
+            IEntityManager entityManager,
+            SharedTransformSystem transformSystem,
+            EntityCoordinates otherCoordinates,
+            out Vector2 delta)
+        {
+            delta = Vector2.Zero;
 
             if (!IsValid(entityManager) || !otherCoordinates.IsValid(entityManager))
                 return false;
 
             if (EntityId == otherCoordinates.EntityId)
             {
-                distance = (Position - otherCoordinates.Position).Length();
+                delta = Position - otherCoordinates.Position;
                 return true;
             }
 
@@ -383,7 +413,7 @@ namespace Robust.Shared.Map
             if (mapCoordinates.MapId != otherMapCoordinates.MapId)
                 return false;
 
-            distance = (mapCoordinates.Position - otherMapCoordinates.Position).Length();
+            delta = mapCoordinates.Position - otherMapCoordinates.Position;
             return true;
         }
 

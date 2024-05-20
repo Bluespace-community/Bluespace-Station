@@ -1,5 +1,7 @@
 using System.Numerics;
 using Content.Shared.Atmos;
+using Content.Shared.Explosion;
+using Content.Shared.Explosion.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
@@ -21,7 +23,7 @@ public sealed partial class ExplosionSystem : EntitySystem
     /// </summary>
     private void OnGridStartup(GridStartupEvent ev)
     {
-        var grid = _mapManager.GetGrid(ev.EntityUid);
+        var grid = Comp<MapGridComponent>(ev.EntityUid);
 
         Dictionary<Vector2i, NeighborFlag> edges = new();
         _gridEdges[ev.EntityUid] = edges;
@@ -37,6 +39,13 @@ public sealed partial class ExplosionSystem : EntitySystem
     {
         _airtightMap.Remove(ev.EntityUid);
         _gridEdges.Remove(ev.EntityUid);
+
+        // this should be a small enough set that iterating all of them is fine
+        var query = EntityQueryEnumerator<ExplosionVisualsComponent>();
+        while (query.MoveNext(out var visuals))
+        {
+            visuals.Tiles.Remove(ev.EntityUid);
+        }
     }
 
     /// <summary>
@@ -59,11 +68,10 @@ public sealed partial class ExplosionSystem : EntitySystem
         // if the explosion is centered on some grid (and not just space), get the transforms.
         if (referenceGrid != null)
         {
-            var targetGrid = _mapManager.GetGrid(referenceGrid.Value);
-            var xform = Transform(targetGrid.Owner);
-            var (_, rot, invMat) = _transformSystem.GetWorldPositionRotationInvMatrix(xform);
-            targetAngle = rot;
-            targetMatrix = invMat;
+            var targetGrid = Comp<MapGridComponent>(referenceGrid.Value);
+            var xform = Transform(referenceGrid.Value);
+            targetAngle = xform.WorldRotation;
+            targetMatrix = xform.InvWorldMatrix;
             tileSize = targetGrid.TileSize;
         }
 
@@ -85,18 +93,18 @@ public sealed partial class ExplosionSystem : EntitySystem
             if (!_gridEdges.TryGetValue(gridToTransform, out var edges))
                 continue;
 
-            if (!_mapManager.TryGetGrid(gridToTransform, out var grid))
+            if (!TryComp(gridToTransform, out MapGridComponent? grid))
                 continue;
 
             if (grid.TileSize != tileSize)
             {
-                Logger.Error($"Explosions do not support grids with different grid sizes. GridIds: {gridToTransform} and {referenceGrid}");
+                Log.Error($"Explosions do not support grids with different grid sizes. GridIds: {gridToTransform} and {referenceGrid}");
                 continue;
             }
 
             var xforms = EntityManager.GetEntityQuery<TransformComponent>();
-            var xform = xforms.GetComponent(grid.Owner);
-            var  (_, gridWorldRotation, gridWorldMatrix, invGridWorldMatrid) = _transformSystem.GetWorldPositionRotationMatrixWithInv(xform, xforms);
+            var xform = xforms.GetComponent(gridToTransform);
+            var  (_, gridWorldRotation, gridWorldMatrix, invGridWorldMatrid) = xform.GetWorldPositionRotationMatrixWithInv(xforms);
 
             var localEpicentre = (Vector2i) invGridWorldMatrid.Transform(epicentre.Position);
             var matrix = offsetMatrix * gridWorldMatrix * targetMatrix;
@@ -229,7 +237,7 @@ public sealed partial class ExplosionSystem : EntitySystem
         if (!ev.NewTile.Tile.IsEmpty && !ev.OldTile.IsEmpty)
             return;
 
-        if (!_mapManager.TryGetGrid(ev.Entity, out var grid))
+        if (!TryComp(ev.Entity, out MapGridComponent? grid))
             return;
 
         var tileRef = ev.NewTile;

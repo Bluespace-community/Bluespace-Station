@@ -13,56 +13,63 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_cookie_visitor_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _visit;
+        internal delegate* unmanaged<cef_cookie_visitor_t*, cef_cookie_t*, int, int, int*, int> _visit;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_cookie_visitor_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_cookie_visitor_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_cookie_visitor_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_cookie_visitor_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int visit_delegate(cef_cookie_visitor_t* self, cef_cookie_t* cookie, int count, int total, int* deleteCookie);
-        
-        private static int _sizeof;
-        
-        static cef_cookie_visitor_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_cookie_visitor_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_cookie_visitor_t));
+            var obj = (CefCookieVisitor)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_cookie_visitor_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_cookie_visitor_t* self)
         {
-            var ptr = (cef_cookie_visitor_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_cookie_visitor_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefCookieVisitor)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_cookie_visitor_t* self)
+        {
+            var obj = (CefCookieVisitor)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_cookie_visitor_t* self)
+        {
+            var obj = (CefCookieVisitor)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int visit(cef_cookie_visitor_t* self, cef_cookie_t* cookie, int count, int total, int* deleteCookie)
+        {
+            var obj = (CefCookieVisitor)self->_obj.Target;
+            return obj.visit(self, cookie, count, total, deleteCookie);
+        }
+        
+        internal static cef_cookie_visitor_t* Alloc(CefCookieVisitor obj)
+        {
+            var ptr = (cef_cookie_visitor_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_cookie_visitor_t));
+            *ptr = default(cef_cookie_visitor_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_cookie_visitor_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_cookie_visitor_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_cookie_visitor_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_cookie_visitor_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_cookie_visitor_t*, int>)&has_at_least_one_ref;
+            ptr->_visit = &visit;
             return ptr;
         }
         
         internal static void Free(cef_cookie_visitor_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

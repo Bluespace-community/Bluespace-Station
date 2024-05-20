@@ -7,14 +7,15 @@
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Interface that should be implemented to handle V8 function calls. The methods
-    /// of this class will always be called on the render process main thread.
+    /// Interface that should be implemented to handle V8 function calls. The
+    /// methods of this class will be called on the thread associated with the V8
+    /// function.
     /// </summary>
     public abstract unsafe partial class CefV8Handler
     {
-        private static readonly CefV8Value[] emtpyArgs = new CefV8Value[0];
+        private static readonly CefV8Value[] s_emtpyArgs = new CefV8Value[0];
 
-        private int execute(cef_v8handler_t* self, cef_string_t* name, cef_v8value_t* @object, UIntPtr argumentsCount, cef_v8value_t** arguments, cef_v8value_t** retval, cef_string_t* exception)
+        internal int execute(cef_v8handler_t* self, cef_string_t* name, cef_v8value_t* @object, UIntPtr argumentsCount, cef_v8value_t** arguments, cef_v8value_t** retval, cef_string_t* exception)
         {
             CheckSelf(self);
 
@@ -22,7 +23,7 @@
             var m_obj = CefV8Value.FromNative(@object);
             var argc = (int)argumentsCount;
             CefV8Value[] m_arguments;
-            if (argc == 0) { m_arguments = emtpyArgs; }
+            if (argc == 0) { m_arguments = s_emtpyArgs; }
             else
             {
                 m_arguments = new CefV8Value[argc];
@@ -55,9 +56,9 @@
         /// <summary>
         /// Handle execution of the function identified by |name|. |object| is the
         /// receiver ('this' object) of the function. |arguments| is the list of
-        /// arguments passed to the function. If execution succeeds set |retval| to the
-        /// function return value. If execution fails set |exception| to the exception
-        /// that will be thrown. Return true if execution was handled.
+        /// arguments passed to the function. If execution succeeds set |retval| to
+        /// the function return value. If execution fails set |exception| to the
+        /// exception that will be thrown. Return true if execution was handled.
         /// </summary>
         protected abstract bool Execute(string name, CefV8Value obj, CefV8Value[] arguments, out CefV8Value returnValue, out string exception);
     }

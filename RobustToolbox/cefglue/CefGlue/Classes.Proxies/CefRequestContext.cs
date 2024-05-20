@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Net.Mime;
+    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using Xilium.CefGlue.Interop;
 
@@ -10,10 +12,10 @@
     /// A request context provides request handling for a set of related browser
     /// or URL request objects. A request context can be specified when creating a
     /// new browser via the CefBrowserHost static factory methods or when creating a
-    /// new URL request via the CefURLRequest static factory methods. Browser objects
-    /// with different request contexts will never be hosted in the same render
-    /// process. Browser objects with the same request context may or may not be
-    /// hosted in the same render process depending on the process model. Browser
+    /// new URL request via the CefURLRequest static factory methods. Browser
+    /// objects with different request contexts will never be hosted in the same
+    /// render process. Browser objects with the same request context may or may not
+    /// be hosted in the same render process depending on the process model. Browser
     /// objects created indirectly via the JavaScript window.open function or
     /// targeted links will share the same render process and the same request
     /// context as the source browser. When running in single-process mode there is
@@ -24,6 +26,10 @@
     /// </summary>
     public sealed unsafe partial class CefRequestContext
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private cef_request_context_t* GetSelf()
+            => (cef_request_context_t*)_self;
+
         /// <summary>
         /// Returns the global context object.
         /// </summary>
@@ -77,7 +83,7 @@
         {
             if (other == null) return false;
 
-            return cef_request_context_t.is_same(_self, other.ToNative()) != 0;
+            return cef_request_context_t.is_same(GetSelf(), other.ToNative()) != 0;
         }
 
         /// <summary>
@@ -85,7 +91,7 @@
         /// </summary>
         public bool IsSharingWith(CefRequestContext other)
         {
-            return cef_request_context_t.is_sharing_with(_self, other.ToNative()) != 0;
+            return cef_request_context_t.is_sharing_with(GetSelf(), other.ToNative()) != 0;
         }
 
         /// <summary>
@@ -97,7 +103,7 @@
         {
             get
             {
-                return cef_request_context_t.is_global(_self) != 0;
+                return cef_request_context_t.is_global(GetSelf()) != 0;
             }
         }
 
@@ -107,7 +113,7 @@
         public CefRequestContextHandler GetHandler()
         {
             return CefRequestContextHandler.FromNativeOrNull(
-                cef_request_context_t.get_handler(_self)
+                cef_request_context_t.get_handler(GetSelf())
                 );
         }
 
@@ -119,7 +125,7 @@
         {
             get
             {
-                var n_result = cef_request_context_t.get_cache_path(_self);
+                var n_result = cef_request_context_t.get_cache_path(GetSelf());
                 return cef_string_userfree.ToString(n_result);
             }
         }
@@ -134,7 +140,7 @@
             var n_callback = callback != null ? callback.ToNative() : null;
 
             return CefCookieManager.FromNativeOrNull(
-                cef_request_context_t.get_cookie_manager(_self, n_callback)
+                cef_request_context_t.get_cookie_manager(GetSelf(), n_callback)
                 );
         }
 
@@ -145,9 +151,9 @@
         /// will be ignored for non-standard schemes. If |scheme_name| is a built-in
         /// scheme and no handler is returned by |factory| then the built-in scheme
         /// handler factory will be called. If |scheme_name| is a custom scheme then
-        /// you must also implement the CefApp::OnRegisterCustomSchemes() method in all
-        /// processes. This function may be called multiple times to change or remove
-        /// the factory that matches the specified |scheme_name| and optional
+        /// you must also implement the CefApp::OnRegisterCustomSchemes() method in
+        /// all processes. This function may be called multiple times to change or
+        /// remove the factory that matches the specified |scheme_name| and optional
         /// |domain_name|. Returns false if an error occurs. This function may be
         /// called on any thread in the browser process.
         /// </summary>
@@ -162,98 +168,17 @@
                 var n_schemeName = new cef_string_t(schemeName_str, schemeName.Length);
                 var n_domainName = new cef_string_t(domainName_str, domainName != null ? domainName.Length : 0);
 
-                return cef_request_context_t.register_scheme_handler_factory(_self, &n_schemeName, &n_domainName, factory.ToNative()) != 0;
+                return cef_request_context_t.register_scheme_handler_factory(GetSelf(), &n_schemeName, &n_domainName, factory.ToNative()) != 0;
             }
         }
 
         /// <summary>
-        /// Clear all registered scheme handler factories. Returns false on error. This
-        /// function may be called on any thread in the browser process.
+        /// Clear all registered scheme handler factories. Returns false on error.
+        /// This function may be called on any thread in the browser process.
         /// </summary>
         public bool ClearSchemeHandlerFactories()
         {
-            return cef_request_context_t.clear_scheme_handler_factories(_self) != 0;
-        }
-
-        /// <summary>
-        /// Returns true if a preference with the specified |name| exists. This method
-        /// must be called on the browser process UI thread.
-        /// </summary>
-        public bool HasPreference(string name)
-        {
-            fixed (char* name_str = name)
-            {
-                var n_name = new cef_string_t(name_str, name != null ? name.Length : 0);
-                return cef_request_context_t.has_preference(_self, &n_name) != 0;
-            }
-        }
-
-        /// <summary>
-        /// Returns the value for the preference with the specified |name|. Returns
-        /// NULL if the preference does not exist. The returned object contains a copy
-        /// of the underlying preference value and modifications to the returned object
-        /// will not modify the underlying preference value. This method must be called
-        /// on the browser process UI thread.
-        /// </summary>
-        public CefValue GetPreference(string name)
-        {
-            fixed (char* name_str = name)
-            {
-                var n_name = new cef_string_t(name_str, name != null ? name.Length : 0);
-                var n_value = cef_request_context_t.get_preference(_self, &n_name);
-                return CefValue.FromNativeOrNull(n_value);
-            }
-        }
-
-        /// <summary>
-        /// Returns all preferences as a dictionary. If |include_defaults| is true then
-        /// preferences currently at their default value will be included. The returned
-        /// object contains a copy of the underlying preference values and
-        /// modifications to the returned object will not modify the underlying
-        /// preference values. This method must be called on the browser process UI
-        /// thread.
-        /// </summary>
-        public CefDictionaryValue GetAllPreferences(bool includeDefaults)
-        {
-            var n_result = cef_request_context_t.get_all_preferences(_self, includeDefaults ? 1 : 0);
-            return CefDictionaryValue.FromNative(n_result);
-        }
-
-        /// <summary>
-        /// Returns true if the preference with the specified |name| can be modified
-        /// using SetPreference. As one example preferences set via the command-line
-        /// usually cannot be modified. This method must be called on the browser
-        /// process UI thread.
-        /// </summary>
-        public bool CanSetPreference(string name)
-        {
-            fixed (char* name_str = name)
-            {
-                var n_name = new cef_string_t(name_str, name != null ? name.Length : 0);
-                return cef_request_context_t.can_set_preference(_self, &n_name) != 0;
-            }
-        }
-
-        /// <summary>
-        /// Set the |value| associated with preference |name|. Returns true if the
-        /// value is set successfully and false otherwise. If |value| is NULL the
-        /// preference will be restored to its default value. If setting the preference
-        /// fails then |error| will be populated with a detailed description of the
-        /// problem. This method must be called on the browser process UI thread.
-        /// </summary>
-        public bool SetPreference(string name, CefValue value, out string error)
-        {
-            fixed (char* name_str = name)
-            {
-                var n_name = new cef_string_t(name_str, name != null ? name.Length : 0);
-                var n_value = value != null ? value.ToNative() : null;
-                cef_string_t n_error;
-
-                var n_result = cef_request_context_t.set_preference(_self, &n_name, n_value, &n_error);
-
-                error = cef_string_t.ToString(&n_error);
-                return n_result != 0;
-            }
+            return cef_request_context_t.clear_scheme_handler_factories(GetSelf()) != 0;
         }
 
         /// <summary>
@@ -267,7 +192,7 @@
         public void ClearCertificateExceptions(CefCompletionCallback callback)
         {
             var n_callback = callback != null ? callback.ToNative() : null;
-            cef_request_context_t.clear_certificate_exceptions(_self, n_callback);
+            cef_request_context_t.clear_certificate_exceptions(GetSelf(), n_callback);
         }
 
         /// <summary>
@@ -278,7 +203,7 @@
         public void ClearHttpAuthCredentials(CefCompletionCallback callback)
         {
             var n_callback = callback != null ? callback.ToNative() : null;
-            cef_request_context_t.clear_http_auth_credentials(_self, n_callback);
+            cef_request_context_t.clear_http_auth_credentials(GetSelf(), n_callback);
         }
 
         /// <summary>
@@ -290,7 +215,7 @@
         public void CloseAllConnections(CefCompletionCallback callback)
         {
             var n_callback = callback != null ? callback.ToNative() : null;
-            cef_request_context_t.close_all_connections(_self, n_callback);
+            cef_request_context_t.close_all_connections(GetSelf(), n_callback);
         }
 
         /// <summary>
@@ -306,7 +231,7 @@
             {
                 var n_origin = new cef_string_t(origin_str, origin != null ? origin.Length : 0);
                 var n_callback = callback.ToNative();
-                cef_request_context_t.resolve_host(_self, &n_origin, n_callback);
+                cef_request_context_t.resolve_host(GetSelf(), &n_origin, n_callback);
             }
         }
 
@@ -315,11 +240,12 @@
         /// If extension resources will be read from disk using the default load
         /// implementation then |root_directory| should be the absolute path to the
         /// extension resources directory and |manifest| should be NULL. If extension
-        /// resources will be provided by the client (e.g. via CefRequestHandler and/or
-        /// CefExtensionHandler) then |root_directory| should be a path component
-        /// unique to the extension (if not absolute this will be internally prefixed
-        /// with the PK_DIR_RESOURCES path) and |manifest| should contain the contents
-        /// that would otherwise be read from the "manifest.json" file on disk.
+        /// resources will be provided by the client (e.g. via CefRequestHandler
+        /// and/or CefExtensionHandler) then |root_directory| should be a path
+        /// component unique to the extension (if not absolute this will be internally
+        /// prefixed with the PK_DIR_RESOURCES path) and |manifest| should contain the
+        /// contents that would otherwise be read from the "manifest.json" file on
+        /// disk.
         /// The loaded extension will be accessible in all contexts sharing the same
         /// storage (HasExtension returns true). However, only the context on which
         /// this method was called is considered the loader (DidLoadExtension returns
@@ -335,8 +261,9 @@
         /// manifest to determine the correct extension URL to load and then pass that
         /// URL to the CefBrowserHost::CreateBrowser* function after the extension has
         /// loaded. For example, the client can look for the "browser_action" manifest
-        /// key as documented at https://developer.chrome.com/extensions/browserAction.
-        /// Extension URLs take the form "chrome-extension://&lt;extension_id&gt;/&lt;path&gt;".
+        /// key as documented at
+        /// https://developer.chrome.com/extensions/browserAction. Extension URLs take
+        /// the form "chrome-extension://&lt;extension_id&gt;/&lt;path&gt;".
         /// Browsers that host extensions differ from normal browsers as follows:
         /// - Can access chrome.* JavaScript APIs if allowed by the manifest. Visit
         /// chrome://extensions-support for the list of extension APIs currently
@@ -355,7 +282,7 @@
                 var n_rootDirectory = new cef_string_t(rootDirectory_str, rootDirectory != null ? rootDirectory.Length : 0);
                 var n_manifest = manifest != null ? manifest.ToNative() : null;
                 var n_handler = handler != null ? handler.ToNative() : null;
-                cef_request_context_t.load_extension(_self, &n_rootDirectory, n_manifest, n_handler);
+                cef_request_context_t.load_extension(GetSelf(), &n_rootDirectory, n_manifest, n_handler);
             }
         }
 
@@ -370,36 +297,36 @@
             fixed(char* extensionId_str = extensionId)
             {
                 var n_extensionId = new cef_string_t(extensionId_str, extensionId != null ? extensionId.Length : 0);
-                return cef_request_context_t.did_load_extension(_self, &n_extensionId) != 0;
+                return cef_request_context_t.did_load_extension(GetSelf(), &n_extensionId) != 0;
             }
         }
 
         /// <summary>
         /// Returns true if this context has access to the extension identified by
         /// |extension_id|. This may not be the context that was used to load the
-        /// extension (see DidLoadExtension). This method must be called on the browser
-        /// process UI thread.
+        /// extension (see DidLoadExtension). This method must be called on the
+        /// browser process UI thread.
         /// </summary>
         public bool HasExtension(string extensionId)
         {
             fixed (char* extensionId_str = extensionId)
             {
                 var n_extensionId = new cef_string_t(extensionId_str, extensionId != null ? extensionId.Length : 0);
-                return cef_request_context_t.has_extension(_self, &n_extensionId) != 0;
+                return cef_request_context_t.has_extension(GetSelf(), &n_extensionId) != 0;
             }
         }
 
         /// <summary>
         /// Retrieve the list of all extensions that this context has access to (see
-        /// HasExtension). |extension_ids| will be populated with the list of extension
-        /// ID values. Returns true on success. This method must be called on the
-        /// browser process UI thread.
+        /// HasExtension). |extension_ids| will be populated with the list of
+        /// extension ID values. Returns true on success. This method must be called
+        /// on the browser process UI thread.
         /// </summary>
         public bool GetExtensions(out string[] extensionIds)
         {
             var n_extensionIds = libcef.string_list_alloc();
 
-            var result = cef_request_context_t.get_extensions(_self, n_extensionIds) != 0;
+            var result = cef_request_context_t.get_extensions(GetSelf(), n_extensionIds) != 0;
             if (result)
             {
                 extensionIds = cef_string_list.ToArray(n_extensionIds);
@@ -423,21 +350,125 @@
             fixed (char* extensionId_str = extensionId)
             {
                 var n_extensionId = new cef_string_t(extensionId_str, extensionId != null ? extensionId.Length : 0);
-                var n_result = cef_request_context_t.get_extension(_self, &n_extensionId);
+                var n_result = cef_request_context_t.get_extension(GetSelf(), &n_extensionId);
                 return CefExtension.FromNativeOrNull(n_result);
             }
         }
 
         /// <summary>
-        /// Returns the MediaRouter object associated with this context. If |callback|
-        /// is non-NULL it will be executed asnychronously on the UI thread after the
-        /// manager's context has been initialized.
+        /// Returns the MediaRouter object associated with this context.  If
+        /// |callback| is non-NULL it will be executed asnychronously on the UI thread
+        /// after the manager's context has been initialized.
         /// </summary>
         public CefMediaRouter GetMediaRouter(CefCompletionCallback? callback)
         {
             var nCallback = callback != null ? callback.ToNative() : null;
-            var nResult = cef_request_context_t.get_media_router(_self, nCallback);
+            var nResult = cef_request_context_t.get_media_router(GetSelf(), nCallback);
             return CefMediaRouter.FromNative(nResult);
+        }
+
+        /// <summary>
+        /// Returns the current value for |content_type| that applies for the
+        /// specified URLs. If both URLs are empty the default value will be returned.
+        /// Returns nullptr if no value is configured. Must be called on the browser
+        /// process UI thread.
+        /// </summary>
+        public CefValue GetWebsiteSetting(string? requestingUrl,
+            string? topLevelUrl,
+            CefContentSettingTypes contentType)
+        {
+            fixed (char* requestingUrl_str = requestingUrl)
+            fixed (char* topLevelUrl_str = topLevelUrl)
+            {
+                var n_requestingUrl = new cef_string_t(requestingUrl_str, requestingUrl != null ? requestingUrl.Length : 0);
+                var n_topLevelUrl = new cef_string_t(topLevelUrl_str, topLevelUrl != null ? topLevelUrl.Length : 0);
+
+                var n_result = cef_request_context_t.get_website_setting(GetSelf(),
+                    &n_requestingUrl, &n_topLevelUrl, contentType);
+                return CefValue.FromNativeOrNull(n_result);
+            }
+        }
+
+        /// <summary>
+        /// Sets the current value for |content_type| for the specified URLs in the
+        /// default scope. If both URLs are empty, and the context is not incognito,
+        /// the default value will be set. Pass nullptr for |value| to remove the
+        /// default value for this content type.
+        /// WARNING: Incorrect usage of this method may cause instability or security
+        /// issues in Chromium. Make sure that you first understand the potential
+        /// impact of any changes to |content_type| by reviewing the related source
+        /// code in Chromium. For example, if you plan to modify
+        /// CEF_CONTENT_SETTING_TYPE_POPUPS, first review and understand the usage of
+        /// ContentSettingsType::POPUPS in Chromium:
+        /// https://source.chromium.org/search?q=ContentSettingsType::POPUPS
+        /// </summary>
+        public void SetWebsiteSetting(string? requestingUrl,
+            string? topLevelUrl,
+            CefContentSettingTypes contentType,
+            CefValue value)
+        {
+            fixed (char* requestingUrl_str = requestingUrl)
+            fixed (char* topLevelUrl_str = topLevelUrl)
+            {
+                var n_requestingUrl = new cef_string_t(requestingUrl_str, requestingUrl != null ? requestingUrl.Length : 0);
+                var n_topLevelUrl = new cef_string_t(topLevelUrl_str, topLevelUrl != null ? topLevelUrl.Length : 0);
+
+                cef_request_context_t.set_website_setting(GetSelf(),
+                    &n_requestingUrl, &n_topLevelUrl, contentType,
+                    value.ToNative());
+            }
+        }
+
+        /// <summary>
+        /// Returns the current value for |content_type| that applies for the
+        /// specified URLs. If both URLs are empty the default value will be returned.
+        /// Returns CEF_CONTENT_SETTING_VALUE_DEFAULT if no value is configured. Must
+        /// be called on the browser process UI thread.
+        /// </summary>
+        public CefContentSettingValues GetContentSetting(
+            string? requestingUrl, string? topLevelUrl,
+            CefContentSettingTypes contentType)
+        {
+            fixed (char* requestingUrl_str = requestingUrl)
+            fixed (char* topLevelUrl_str = topLevelUrl)
+            {
+                var n_requestingUrl = new cef_string_t(requestingUrl_str, requestingUrl != null ? requestingUrl.Length : 0);
+                var n_topLevelUrl = new cef_string_t(topLevelUrl_str, topLevelUrl != null ? topLevelUrl.Length : 0);
+
+                return cef_request_context_t.get_content_setting(GetSelf(),
+                    &n_requestingUrl, &n_topLevelUrl, contentType);
+            }
+        }
+
+        /// <summary>
+        /// Sets the current value for |content_type| for the specified URLs in the
+        /// default scope. If both URLs are empty, and the context is not incognito,
+        /// the default value will be set. Pass CEF_CONTENT_SETTING_VALUE_DEFAULT for
+        /// |value| to use the default value for this content type.
+        /// WARNING: Incorrect usage of this method may cause instability or security
+        /// issues in Chromium. Make sure that you first understand the potential
+        /// impact of any changes to |content_type| by reviewing the related source
+        /// code in Chromium. For example, if you plan to modify
+        /// CEF_CONTENT_SETTING_TYPE_POPUPS, first review and understand the usage of
+        /// ContentSettingsType::POPUPS in Chromium:
+        /// https://source.chromium.org/search?q=ContentSettingsType::POPUPS
+        /// </summary>
+        public void SetContentSetting(
+            string? requestingUrl,
+            string? topLevelUrl,
+            CefContentSettingTypes contentType,
+            CefContentSettingValues value)
+        {
+            fixed (char* requestingUrl_str = requestingUrl)
+            fixed (char* topLevelUrl_str = topLevelUrl)
+            {
+                var n_requestingUrl = new cef_string_t(requestingUrl_str, requestingUrl != null ? requestingUrl.Length : 0);
+                var n_topLevelUrl = new cef_string_t(topLevelUrl_str, topLevelUrl != null ? topLevelUrl.Length : 0);
+
+                cef_request_context_t.set_content_setting(GetSelf(),
+                    &n_requestingUrl, &n_topLevelUrl,
+                    contentType, value);
+            }
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Robust.UnitTesting.Shared
             var entManager = server.Resolve<IEntityManager>();
             var mapManager = server.Resolve<IMapManager>();
 
-            var mapId = mapManager.CreateMap();
+            var mapId = server.CreateMap().MapId;
 
             var theMapSpotBeingUsed = new Box2(Vector2.Zero, Vector2.One);
 
@@ -43,11 +43,11 @@ namespace Robust.UnitTesting.Shared
             var entManager = server.Resolve<IEntityManager>();
             var mapManager = server.Resolve<IMapManager>();
 
-            var mapId = mapManager.CreateMap();
-            var grid = mapManager.CreateGrid(mapId);
+            var mapId = server.CreateMap().MapId;
+            var grid = mapManager.CreateGridEntity(mapId);
 
             var theMapSpotBeingUsed = new Box2(Vector2.Zero, Vector2.One);
-            grid.SetTile(new Vector2i(), new Tile(1));
+            grid.Comp.SetTile(new Vector2i(), new Tile(1));
 
             Assert.That(lookup.GetEntitiesIntersecting(mapId, theMapSpotBeingUsed).ToList().Count, Is.EqualTo(0));
 
@@ -66,7 +66,7 @@ namespace Robust.UnitTesting.Shared
             Assert.That(lookup.GetEntitiesIntersecting(mapId, theMapSpotBeingUsed).ToList().Count, Is.EqualTo(1));
 
             entManager.DeleteEntity(dummy);
-            mapManager.DeleteGrid(grid.Owner);
+            mapManager.DeleteGrid(grid);
             mapManager.DeleteMap(mapId);
         }
     }

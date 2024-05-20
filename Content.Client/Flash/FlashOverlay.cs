@@ -1,10 +1,10 @@
 using System.Numerics;
 using Content.Client.Viewport;
-using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.State;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
+using Robust.Shared.Graphics;
 using Robust.Shared.IoC;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
@@ -51,7 +51,7 @@ namespace Content.Client.Flash
 
         protected override void Draw(in OverlayDrawArgs args)
         {
-            if (!_entityManager.TryGetComponent(_playerManager.LocalPlayer?.ControlledEntity, out EyeComponent? eyeComp))
+            if (!_entityManager.TryGetComponent(_playerManager.LocalEntity, out EyeComponent? eyeComp))
                 return;
 
             if (args.Viewport.Eye != eyeComp.Eye)

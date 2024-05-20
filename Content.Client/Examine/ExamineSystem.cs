@@ -22,6 +22,7 @@ using static Content.Shared.Interaction.SharedInteractionSystem;
 using static Robust.Client.UserInterface.Controls.BoxContainer;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item;
+using Direction = Robust.Shared.Maths.Direction;
 
 namespace Content.Client.Examine
 {
@@ -32,7 +33,6 @@ namespace Content.Client.Examine
         [Dependency] private readonly IPlayerManager _playerManager = default!;
         [Dependency] private readonly IEyeManager _eyeManager = default!;
         [Dependency] private readonly VerbSystem _verbSystem = default!;
-        [Dependency] private readonly IBaseClient _client = default!;
 
         public const string StyleClassEntityTooltip = "entity-tooltip";
 
@@ -65,12 +65,10 @@ namespace Content.Client.Examine
         {
             if (!args.User.Valid)
                 return;
-            if (_playerManager.LocalPlayer == null)
-                return;
             if (_examineTooltipOpen == null)
                 return;
 
-            if (item == _examinedEntity && args.User == _playerManager.LocalPlayer.ControlledEntity)
+            if (item == _examinedEntity && args.User == _playerManager.LocalEntity)
                 CloseTooltip();
         }
 
@@ -110,19 +108,21 @@ namespace Content.Client.Examine
 
         private bool HandleExamine(in PointerInputCmdHandler.PointerInputCmdArgs args)
         {
-            if (!args.EntityUid.IsValid() || !EntityManager.EntityExists(args.EntityUid))
+            var entity = args.EntityUid;
+
+            if (!args.EntityUid.IsValid() || !EntityManager.EntityExists(entity))
             {
                 return false;
             }
 
-            _playerEntity = _playerManager.LocalPlayer?.ControlledEntity ?? default;
+            _playerEntity = _playerManager.LocalEntity ?? default;
 
-            if (_playerEntity == default || !CanExamine(_playerEntity, args.EntityUid))
+            if (_playerEntity == default || !CanExamine(_playerEntity, entity))
             {
                 return false;
             }
 
-            DoExamine(args.EntityUid);
+            DoExamine(entity);
             return true;
         }
 
@@ -146,7 +146,7 @@ namespace Content.Client.Examine
 
         private void OnExamineInfoResponse(ExamineSystemMessages.ExamineInfoResponseMessage ev)
         {
-            var player = _playerManager.LocalPlayer?.ControlledEntity;
+            var player = _playerManager.LocalEntity;
             if (player == null)
                 return;
 
@@ -157,8 +157,10 @@ namespace Content.Client.Examine
             // Tooltips coming in from the server generally prioritize
             // opening at the old tooltip rather than the cursor/another entity,
             // since there's probably one open already if it's coming in from the server.
-            OpenTooltip(player.Value, ev.EntityUid, ev.CenterAtCursor, ev.OpenAtOldTooltip, ev.KnowTarget);
-            UpdateTooltipInfo(player.Value, ev.EntityUid, ev.Message, ev.Verbs);
+            var entity = GetEntity(ev.EntityUid);
+
+            OpenTooltip(player.Value, entity, ev.CenterAtCursor, ev.OpenAtOldTooltip, ev.KnowTarget);
+            UpdateTooltipInfo(player.Value, entity, ev.Message, ev.Verbs);
         }
 
         public override void SendExamineTooltip(EntityUid player, EntityUid target, FormattedMessage message, bool getVerbs, bool centerAtCursor)
@@ -210,14 +212,16 @@ namespace Content.Client.Examine
             var vBox = new BoxContainer
             {
                 Name = "ExaminePopupVbox",
-                Orientation = LayoutOrientation.Vertical
+                Orientation = LayoutOrientation.Vertical,
+                MaxWidth = _examineTooltipOpen.MaxWidth
             };
             panel.AddChild(vBox);
 
             var hBox = new BoxContainer
             {
                 Orientation = LayoutOrientation.Horizontal,
-                SeparationOverride = 5
+                SeparationOverride = 5,
+                Margin = new Thickness(6, 0, 6, 0)
             };
 
             vBox.AddChild(hBox);
@@ -227,8 +231,7 @@ namespace Content.Client.Examine
                 var spriteView = new SpriteView
                 {
                     OverrideDirection = Direction.South,
-                    SetSize = new Vector2(32, 32),
-                    Margin = new Thickness(2, 0, 2, 0),
+                    SetSize = new Vector2(32, 32)
                 };
                 spriteView.SetEntity(target);
                 hBox.AddChild(spriteView);
@@ -236,19 +239,17 @@ namespace Content.Client.Examine
 
             if (knowTarget)
             {
-                hBox.AddChild(new Label
-                {
-                    Text = Identity.Name(target, EntityManager, player),
-                    HorizontalExpand = true,
-                });
+                var itemName = FormattedMessage.RemoveMarkup(Identity.Name(target, EntityManager, player));
+                var labelMessage = FormattedMessage.FromMarkup($"[bold]{itemName}[/bold]");
+                var label = new RichTextLabel();
+                label.SetMessage(labelMessage);
+                hBox.AddChild(label);
             }
             else
             {
-                hBox.AddChild(new Label
-                {
-                    Text = "???",
-                    HorizontalExpand = true,
-                });
+                var label = new RichTextLabel();
+                label.SetMessage(FormattedMessage.FromMarkup("[bold]???[/bold]"));
+                hBox.AddChild(label);
             }
 
             panel.Measure(Vector2Helpers.Infinity);
@@ -351,36 +352,34 @@ namespace Content.Client.Examine
 
         public void DoExamine(EntityUid entity, bool centeredOnCursor = true, EntityUid? userOverride = null)
         {
-            var playerEnt = userOverride ?? _playerManager.LocalPlayer?.ControlledEntity;
+            var playerEnt = userOverride ?? _playerManager.LocalEntity;
             if (playerEnt == null)
                 return;
 
             FormattedMessage message;
 
             // Basically this just predicts that we can't make out the entity if we have poor vision.
-            var canSeeClearly = true;
-            if (HasComp<BlurryVisionComponent>(playerEnt))
-                canSeeClearly = false;
+            var canSeeClearly = !HasComp<BlurryVisionComponent>(playerEnt);
 
             OpenTooltip(playerEnt.Value, entity, centeredOnCursor, false, knowTarget: canSeeClearly);
-            if (entity.IsClientSide()
-                || _client.RunLevel == ClientRunLevel.SinglePlayerGame) // i.e. a replay
-            {
-                message = GetExamineText(entity, playerEnt);
-                UpdateTooltipInfo(playerEnt.Value, entity, message);
-            }
-            else
+
+            // Always update tooltip info from client first.
+            // If we get it wrong, server will correct us later anyway.
+            // This will usually be correct (barring server-only components, which generally only adds, not replaces text)
+            message = GetExamineText(entity, playerEnt);
+            UpdateTooltipInfo(playerEnt.Value, entity, message);
+
+            if (!IsClientSide(entity))
             {
                 // Ask server for extra examine info.
                 if (entity != _lastExaminedEntity)
                     _idCounter += 1;
                 if (_idCounter == int.MaxValue)
                     _idCounter = 0;
-                RaiseNetworkEvent(new ExamineSystemMessages.RequestExamineInfoMessage(entity, _idCounter, true));
+                RaiseNetworkEvent(new ExamineSystemMessages.RequestExamineInfoMessage(GetNetEntity(entity), _idCounter, true));
             }
 
             RaiseLocalEvent(entity, new ClientExaminedEvent(entity, playerEnt.Value));
-
             _lastExaminedEntity = entity;
         }
 

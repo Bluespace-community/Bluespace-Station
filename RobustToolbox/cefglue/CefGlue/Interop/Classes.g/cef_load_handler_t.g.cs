@@ -13,77 +13,90 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_load_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_loading_state_change;
-        internal IntPtr _on_load_start;
-        internal IntPtr _on_load_end;
-        internal IntPtr _on_load_error;
+        internal delegate* unmanaged<cef_load_handler_t*, cef_browser_t*, int, int, int, void> _on_loading_state_change;
+        internal delegate* unmanaged<cef_load_handler_t*, cef_browser_t*, cef_frame_t*, CefTransitionType, void> _on_load_start;
+        internal delegate* unmanaged<cef_load_handler_t*, cef_browser_t*, cef_frame_t*, int, void> _on_load_end;
+        internal delegate* unmanaged<cef_load_handler_t*, cef_browser_t*, cef_frame_t*, CefErrorCode, cef_string_t*, cef_string_t*, void> _on_load_error;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_load_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_load_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_load_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_load_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_loading_state_change_delegate(cef_load_handler_t* self, cef_browser_t* browser, int isLoading, int canGoBack, int canGoForward);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_load_start_delegate(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefTransitionType transition_type);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_load_end_delegate(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_load_error_delegate(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefErrorCode errorCode, cef_string_t* errorText, cef_string_t* failedUrl);
-        
-        private static int _sizeof;
-        
-        static cef_load_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_load_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_load_handler_t));
+            var obj = (CefLoadHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_load_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_load_handler_t* self)
         {
-            var ptr = (cef_load_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_load_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefLoadHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_load_handler_t* self)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_load_handler_t* self)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_loading_state_change(cef_load_handler_t* self, cef_browser_t* browser, int isLoading, int canGoBack, int canGoForward)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            obj.on_loading_state_change(self, browser, isLoading, canGoBack, canGoForward);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_load_start(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefTransitionType transition_type)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            obj.on_load_start(self, browser, frame, transition_type);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_load_end(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, int httpStatusCode)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            obj.on_load_end(self, browser, frame, httpStatusCode);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_load_error(cef_load_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefErrorCode errorCode, cef_string_t* errorText, cef_string_t* failedUrl)
+        {
+            var obj = (CefLoadHandler)self->_obj.Target;
+            obj.on_load_error(self, browser, frame, errorCode, errorText, failedUrl);
+        }
+        
+        internal static cef_load_handler_t* Alloc(CefLoadHandler obj)
+        {
+            var ptr = (cef_load_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_load_handler_t));
+            *ptr = default(cef_load_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_load_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_load_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_load_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_load_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_load_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_loading_state_change = &on_loading_state_change;
+            ptr->_on_load_start = &on_load_start;
+            ptr->_on_load_end = &on_load_end;
+            ptr->_on_load_error = &on_load_error;
             return ptr;
         }
         
         internal static void Free(cef_load_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

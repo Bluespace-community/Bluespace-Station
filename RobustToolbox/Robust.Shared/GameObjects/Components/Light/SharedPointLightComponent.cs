@@ -1,9 +1,11 @@
+using System;
 using Robust.Shared.Animations;
 using Robust.Shared.GameStates;
 using Robust.Shared.Maths;
 using Robust.Shared.Serialization.Manager.Attributes;
 using Robust.Shared.ViewVariables;
 using System.Numerics;
+using Robust.Shared.IoC;
 
 namespace Robust.Shared.GameObjects
 {
@@ -11,7 +13,7 @@ namespace Robust.Shared.GameObjects
     public abstract partial class SharedPointLightComponent : Component
     {
         [ViewVariables(VVAccess.ReadWrite)]
-        [DataField("color"), AutoNetworkedField]
+        [DataField("color")]
         [Animatable]
         public Color Color { get; set; } = Color.White;
 
@@ -24,31 +26,50 @@ namespace Robust.Shared.GameObjects
         public Vector2 Offset = Vector2.Zero;
 
         [ViewVariables(VVAccess.ReadWrite)]
-        [DataField("energy"), AutoNetworkedField]
+        [DataField("energy")]
         [Animatable]
         public float Energy { get; set; } = 1f;
 
-        [DataField("softness"), AutoNetworkedField, Animatable]
+        [DataField("softness"), Animatable]
         public float Softness { get; set; } = 1f;
 
         /// <summary>
         ///     Whether this pointlight should cast shadows
         /// </summary>
-        [DataField("castShadows"), AutoNetworkedField]
+        [DataField("castShadows")]
         public bool CastShadows = true;
 
         [Access(typeof(SharedPointLightSystem))]
         [DataField("enabled")]
+        public bool Enabled = true;
+
+        // TODO ECS animations
         [Animatable]
-        public bool Enabled { get; set; } = true;
+        public bool AnimatedEnable
+        {
+            [Obsolete]
+            get => Enabled;
+
+            [Obsolete]
+            set => IoCManager.Resolve<IEntityManager>().System<SharedPointLightSystem>().SetEnabled(Owner, value, this);
+        }
+
+        // TODO ECS animations
+        [Animatable]
+        public float AnimatedRadius
+        {
+            [Obsolete]
+            get => Radius;
+            [Obsolete]
+            set => IoCManager.Resolve<IEntityManager>().System<SharedPointLightSystem>().SetRadius(Owner, value, this);
+        }
 
         /// <summary>
         /// How far the light projects.
         /// </summary>
         [DataField("radius")]
         [Access(typeof(SharedPointLightSystem))]
-        [Animatable]
-        public float Radius { get; set; } = 5f;
+        public float Radius = 5f;
 
         [ViewVariables]
         public bool ContainerOccluded;

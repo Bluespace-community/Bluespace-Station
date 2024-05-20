@@ -5,10 +5,12 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Salvage;
 
+/// <summary>
+/// Transports attached entities to the linked beacon after a timer has elapsed.
+/// </summary>
 public sealed class FultonSystem : SharedFultonSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
 
     public override void Initialize()
     {
@@ -52,17 +54,22 @@ public sealed class FultonSystem : SharedFultonSystem
     {
         if (!Deleted(component.Beacon) &&
             TryComp<TransformComponent>(component.Beacon, out var beaconXform) &&
-            !_container.IsEntityOrParentInContainer(component.Beacon.Value, xform: beaconXform))
+            !Container.IsEntityOrParentInContainer(component.Beacon.Value, xform: beaconXform) &&
+            CanFulton(uid))
         {
             var xform = Transform(uid);
+            var metadata = MetaData(uid);
             var oldCoords = xform.Coordinates;
             var offset = _random.NextVector2(1.5f);
-            TransformSystem.SetCoordinates(uid, new EntityCoordinates(beaconXform.ParentUid, offset));
+            var localPos = TransformSystem.GetInvWorldMatrix(beaconXform.ParentUid)
+                .Transform(TransformSystem.GetWorldPosition(beaconXform)) + offset;
+
+            TransformSystem.SetCoordinates(uid, new EntityCoordinates(beaconXform.ParentUid, localPos));
 
             RaiseNetworkEvent(new FultonAnimationMessage()
             {
-                Entity = uid,
-                Coordinates = oldCoords,
+                Entity = GetNetEntity(uid, metadata),
+                Coordinates = GetNetCoordinates(oldCoords),
             });
         }
 

@@ -6,9 +6,9 @@
 
     /// <summary>
     /// Class used to create and/or parse command line arguments. Arguments with
-    /// '--', '-' and, on Windows, '/' prefixes are considered switches. Switches
+    /// "--", "-" and, on Windows, "/" prefixes are considered switches. Switches
     /// will always precede any arguments without switch prefixes. Switches can
-    /// optionally have a value specified using the '=' delimiter (e.g.
+    /// optionally have a value specified using the "=" delimiter (e.g.
     /// "-switch=value"). An argument of "--" will terminate switch parsing with all
     /// subsequent tokens, regardless of prefix, being interpreted as non-switch
     /// arguments. Switch names should be lowercase ASCII and will be converted to
@@ -40,8 +40,8 @@
 
 
         /// <summary>
-        /// Returns true if this object is valid. Do not call any other methods if this
-        /// function returns false.
+        /// Returns true if this object is valid. Do not call any other methods if
+        /// this function returns false.
         /// </summary>
         public bool IsValid
         {
@@ -91,7 +91,8 @@
 
         /// <summary>
         /// Retrieve the original command line string as a vector of strings.
-        /// The argv array: { program, [(--|-|/)switch[=value]]*, [--], [argument]* }
+        /// The argv array:
+        /// `{ program, [(--|-|/)switch[=value]]*, [--], [argument]* }`
         /// </summary>
         public string[] GetArgv()
         {
@@ -103,8 +104,8 @@
         }
 
         /// <summary>
-        /// Constructs and returns the represented command line string. Use this method
-        /// cautiously because quoting behavior is unclear.
+        /// Constructs and returns the represented command line string. Use this
+        /// method cautiously because quoting behavior is unclear.
         /// </summary>
         public override string ToString()
         {
@@ -193,8 +194,7 @@
         }
 
         /// <summary>
-        /// Add a switch to the end of the command line. If the switch has no value
-        /// pass an empty value string.
+        /// Add a switch to the end of the command line.
         /// </summary>
         public void AppendSwitch(string name)
         {
@@ -215,6 +215,7 @@
 
         /// <summary>
         /// Add a switch with the specified value to the end of the command line.
+        /// If the switch has no value pass an empty value string.
         /// </summary>
         public void AppendSwitch(string name, string value)
         {

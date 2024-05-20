@@ -13,77 +13,90 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_media_observer_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_sinks;
-        internal IntPtr _on_routes;
-        internal IntPtr _on_route_state_changed;
-        internal IntPtr _on_route_message_received;
+        internal delegate* unmanaged<cef_media_observer_t*, UIntPtr, cef_media_sink_t**, void> _on_sinks;
+        internal delegate* unmanaged<cef_media_observer_t*, UIntPtr, cef_media_route_t**, void> _on_routes;
+        internal delegate* unmanaged<cef_media_observer_t*, cef_media_route_t*, CefMediaRouteConnectionState, void> _on_route_state_changed;
+        internal delegate* unmanaged<cef_media_observer_t*, cef_media_route_t*, void*, UIntPtr, void> _on_route_message_received;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_media_observer_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_media_observer_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_media_observer_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_media_observer_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_sinks_delegate(cef_media_observer_t* self, UIntPtr sinksCount, cef_media_sink_t** sinks);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_routes_delegate(cef_media_observer_t* self, UIntPtr routesCount, cef_media_route_t** routes);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_route_state_changed_delegate(cef_media_observer_t* self, cef_media_route_t* route, CefMediaRouteConnectionState state);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_route_message_received_delegate(cef_media_observer_t* self, cef_media_route_t* route, void* message, UIntPtr message_size);
-        
-        private static int _sizeof;
-        
-        static cef_media_observer_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_media_observer_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_media_observer_t));
+            var obj = (CefMediaObserver)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_media_observer_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_media_observer_t* self)
         {
-            var ptr = (cef_media_observer_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_media_observer_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefMediaObserver)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_media_observer_t* self)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_media_observer_t* self)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_sinks(cef_media_observer_t* self, UIntPtr sinksCount, cef_media_sink_t** sinks)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            obj.on_sinks(self, sinksCount, sinks);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_routes(cef_media_observer_t* self, UIntPtr routesCount, cef_media_route_t** routes)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            obj.on_routes(self, routesCount, routes);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_route_state_changed(cef_media_observer_t* self, cef_media_route_t* route, CefMediaRouteConnectionState state)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            obj.on_route_state_changed(self, route, state);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_route_message_received(cef_media_observer_t* self, cef_media_route_t* route, void* message, UIntPtr message_size)
+        {
+            var obj = (CefMediaObserver)self->_obj.Target;
+            obj.on_route_message_received(self, route, message, message_size);
+        }
+        
+        internal static cef_media_observer_t* Alloc(CefMediaObserver obj)
+        {
+            var ptr = (cef_media_observer_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_media_observer_t));
+            *ptr = default(cef_media_observer_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_media_observer_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_media_observer_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_media_observer_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_media_observer_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_media_observer_t*, int>)&has_at_least_one_ref;
+            ptr->_on_sinks = &on_sinks;
+            ptr->_on_routes = &on_routes;
+            ptr->_on_route_state_changed = &on_route_state_changed;
+            ptr->_on_route_message_received = &on_route_message_received;
             return ptr;
         }
         
         internal static void Free(cef_media_observer_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

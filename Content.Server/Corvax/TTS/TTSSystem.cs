@@ -3,11 +3,10 @@ using Content.Server.Chat.Systems;
 using Content.Shared.Corvax.CCCVars;
 using Content.Shared.Corvax.TTS;
 using Content.Shared.GameTicking;
-using Robust.Server.Player;
 using Robust.Shared.Configuration;
-using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server.Corvax.TTS;
 
@@ -16,10 +15,26 @@ public sealed partial class TTSSystem : EntitySystem
 {
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IServerNetManager _netMgr = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly TTSManager _ttsManager = default!;
     [Dependency] private readonly SharedTransformSystem _xforms = default!;
+    [Dependency] private readonly IRobustRandom _rng = default!;
+
+    private readonly List<string> _sampleText =
+        new()
+        {
+            "Съешь же ещё этих мягких французских булок, да выпей чаю.",
+            "Клоун, прекрати разбрасывать банановые кожурки офицерам под ноги!",
+            "Капитан, вы уверены что хотите назначить клоуна на должность главы персонала?",
+            "Эс Бэ! Тут человек в сером костюме, с тулбоксом и в маске! Помогите!!",
+            "Учёные, тут странная аномалия в баре! Она уже съела мима!",
+            "Я надеюсь что инженеры внимательно следят за сингулярностью...",
+            "Вы слышали эти странные крики в техах? Мне кажется туда ходить небезопасно.",
+            "Вы не видели Гамлета? Мне кажется он забегал к вам на кухню.",
+            "Здесь есть доктор? Человек умирает от отравленного пончика! Нужна помощь!",
+            "Вам нужно согласие и печать квартирмейстера, если вы хотите сделать заказ на партию дробовиков.",
+            "Возле эвакуационного шаттла разгерметизация! Инженеры, нам срочно нужна ваша помощь!",
+            "Бармен, налей мне самого крепкого вина, которое есть в твоих запасах!"
+        };
 
     private const int MaxMessageChars = 100 * 2; // same as SingleBubbleCharLimit * 2
     private bool _isEnabled = false;
@@ -32,7 +47,7 @@ public sealed partial class TTSSystem : EntitySystem
         SubscribeLocalEvent<TTSComponent, EntitySpokeEvent>(OnEntitySpoke);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
 
-        _netMgr.RegisterNetMessage<MsgRequestTTS>(OnRequestTTS);
+        SubscribeNetworkEvent<RequestPreviewTTSEvent>(OnRequestPreviewTTS);
     }
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
@@ -40,18 +55,18 @@ public sealed partial class TTSSystem : EntitySystem
         _ttsManager.ResetCache();
     }
 
-    private async void OnRequestTTS(MsgRequestTTS ev)
+    private async void OnRequestPreviewTTS(RequestPreviewTTSEvent ev, EntitySessionEventArgs args)
     {
         if (!_isEnabled ||
-            ev.Text.Length > MaxMessageChars ||
-            !_playerManager.TryGetSessionByChannel(ev.MsgChannel, out var session) ||
             !_prototypeManager.TryIndex<TTSVoicePrototype>(ev.VoiceId, out var protoVoice))
             return;
 
-        var soundData = await GenerateTTS(ev.Text, protoVoice.Speaker);
-        if (soundData is null) return;
+        var previewText = _rng.Pick(_sampleText);
+        var soundData = await GenerateTTS(previewText, protoVoice.Speaker);
+        if (soundData is null)
+            return;
 
-        RaiseNetworkEvent(new PlayTTSEvent(ev.Uid, soundData), Filter.SinglePlayer(session));
+        RaiseNetworkEvent(new PlayTTSEvent(soundData), Filter.SinglePlayer(args.SenderSession));
     }
 
     private async void OnEntitySpoke(EntityUid uid, TTSComponent component, EntitySpokeEvent args)
@@ -82,7 +97,7 @@ public sealed partial class TTSSystem : EntitySystem
     {
         var soundData = await GenerateTTS(message, speaker);
         if (soundData is null) return;
-        RaiseNetworkEvent(new PlayTTSEvent(uid, soundData), Filter.Pvs(uid));
+        RaiseNetworkEvent(new PlayTTSEvent(soundData, GetNetEntity(uid)), Filter.Pvs(uid));
     }
 
     private async void HandleWhisper(EntityUid uid, string message, string obfMessage, string speaker)
@@ -93,8 +108,8 @@ public sealed partial class TTSSystem : EntitySystem
         var obfSoundData = await GenerateTTS(obfMessage, speaker, true);
         if (obfSoundData is null) return;
 
-        var fullTtsEvent = new PlayTTSEvent(uid, fullSoundData, true);
-        var obfTtsEvent = new PlayTTSEvent(uid, obfSoundData, true);
+        var fullTtsEvent = new PlayTTSEvent(fullSoundData, GetNetEntity(uid), true);
+        var obfTtsEvent = new PlayTTSEvent(obfSoundData, GetNetEntity(uid), true);
 
         // TODO: Check obstacles
         var xformQuery = GetEntityQuery<TransformComponent>();

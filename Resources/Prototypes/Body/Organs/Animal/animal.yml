@@ -1,14 +1,34 @@
 ﻿- type: entity
-  id: BaseAnimalOrgan
+  id: BaseAnimalOrganUnGibbable
   parent: BaseItem
   abstract: true
   components:
   - type: Organ
+  - type: Food
   - type: Sprite
     sprite: Mobs/Species/Human/organs.rsi
   - type: StaticPrice
     price: 50
+  - type: SolutionContainerManager
+    solutions:
+      food:
+        maxVol: 5
+        reagents:
+        - ReagentId: UncookedAnimalProteins
+          Quantity: 5
+  - type: FlavorProfile
+    flavors:
+      - chicken # everything kinda tastes like chicken
+  - type: Tag
+    tags:
+      - Meat
 
+- type: entity
+  id: BaseAnimalOrgan
+  parent: BaseAnimalOrganUnGibbable
+  abstract: true
+  components:
+  - type: Gibbable
 
 - type: entity
   id: OrganAnimalLungs
@@ -16,6 +36,10 @@
   name: lungs
   noSpawn: true
   components:
+  - type: Sprite
+    layers:
+    - state: lung-l
+    - state: lung-r
   - type: Organ
   - type: Lung
   - type: Metabolizer
@@ -31,6 +55,11 @@
       Lung:
         maxVol: 100.0
         canReact: false
+      food:
+        maxVol: 5
+        reagents:
+        - ReagentId: UncookedAnimalProteins
+          Quantity: 5
 
 - type: entity
   id: OrganAnimalStomach
@@ -38,11 +67,18 @@
   name: stomach
   noSpawn: true
   components:
+  - type: Sprite
+    state: stomach
   - type: Organ
   - type: SolutionContainerManager
     solutions:
       stomach:
         maxVol: 40
+      food:
+        maxVol: 5
+        reagents:
+        - ReagentId: UncookedAnimalProteins
+          Quantity: 5
   - type: Stomach
   - type: Metabolizer
     maxReagents: 3
@@ -52,11 +88,24 @@
     - id: Drink
 
 - type: entity
+  id: OrganMouseStomach
+  parent: OrganAnimalStomach
+  name: stomach
+  noSpawn: true
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      stomach:
+        maxVol: 30
+
+- type: entity
   id: OrganAnimalLiver
   parent: BaseAnimalOrgan
   name: liver
   noSpawn: true
   components:
+  - type: Sprite
+    state: liver
   - type: Organ
   - type: Metabolizer
     maxReagents: 1
@@ -71,6 +120,8 @@
   name: heart
   noSpawn: true
   components:
+  - type: Sprite
+    state: heart-on
   - type: Organ
   - type: Metabolizer
     maxReagents: 2
@@ -86,6 +137,10 @@
   name: kidneys
   noSpawn: true
   components:
+  - type: Sprite
+    layers:
+    - state: kidney-l
+    - state: kidney-r
   - type: Organ
   - type: Metabolizer
     maxReagents: 5

@@ -19,25 +19,26 @@
   startingGear: QuartermasterGear
   icon: "JobIconQuarterMaster"
   supervisors: job-supervisors-captain
-  #canBeAntag: false ЭКСПЕРИМЕНТ https://github.com/Bluespace-community/Bluespace-Station/pull/123
+  canBeAntag: false
   access:
   - Cargo
   - Salvage
   - Quartermaster
   - Maintenance
-  - External
   - Command
+  - Brig
+  - Cryogenics
+  special:
+  - !type:AddImplantSpecial
+    implants: [ MindShieldImplant ]
+  - !type:AddComponentSpecial
+    components:
+      - type: CommandStaff
 
 - type: startingGear
   id: QuartermasterGear
   equipment:
-    head: ClothingHeadHatQMsoft
-    jumpsuit: ClothingUniformJumpsuitQM
-    back: ClothingBackpackQuartermasterFilled
-    shoes: ClothingShoesColorBrown
     id: QuartermasterPDA
     ears: ClothingHeadsetQM
+    belt: BoxFolderClipboard
     pocket1: AppraisalTool
-  innerclothingskirt: ClothingUniformJumpskirtQM
-  satchel: ClothingBackpackSatchelQuartermasterFilled
-  duffelbag: ClothingBackpackDuffelQuartermasterFilled

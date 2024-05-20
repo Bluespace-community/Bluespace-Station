@@ -10,13 +10,13 @@
     /// Interface that should be implemented to handle V8 interceptor calls. The
     /// methods of this class will be called on the thread associated with the V8
     /// interceptor. Interceptor's named property handlers (with first argument of
-    /// type CefString) are called when object is indexed by string. Indexed property
-    /// handlers (with first argument of type int) are called when object is indexed
-    /// by integer.
+    /// type CefString) are called when object is indexed by string. Indexed
+    /// property handlers (with first argument of type int) are called when object
+    /// is indexed by integer.
     /// </summary>
     public abstract unsafe partial class CefV8Interceptor
     {
-        private int get_byname(cef_v8interceptor_t* self, cef_string_t* name, cef_v8value_t* @object, cef_v8value_t** retval, cef_string_t* exception)
+        internal int get_byname(cef_v8interceptor_t* self, cef_string_t* name, cef_v8value_t* @object, cef_v8value_t** retval, cef_string_t* exception)
         {
             CheckSelf(self);
 
@@ -38,12 +38,12 @@
         }
 
         /// <summary>
-        /// Handle retrieval of the interceptor value identified by |name|. |object| is
-        /// the receiver ('this' object) of the interceptor. If retrieval succeeds, set
-        /// |retval| to the return value. If the requested value does not exist, don't
-        /// set either |retval| or |exception|. If retrieval fails, set |exception| to
-        /// the exception that will be thrown. If the property has an associated
-        /// accessor, it will be called only if you don't set |retval|.
+        /// Handle retrieval of the interceptor value identified by |name|. |object|
+        /// is the receiver ('this' object) of the interceptor. If retrieval succeeds,
+        /// set |retval| to the return value. If the requested value does not exist,
+        /// don't set either |retval| or |exception|. If retrieval fails, set
+        /// |exception| to the exception that will be thrown. If the property has an
+        /// associated accessor, it will be called only if you don't set |retval|.
         /// Return true if interceptor retrieval was handled, false otherwise.
         /// </summary>
         protected virtual bool GetByName(string name, CefV8Value @object, out CefV8Value retval, out string exception)
@@ -54,7 +54,7 @@
         }
 
 
-        private int get_byindex(cef_v8interceptor_t* self, int index, cef_v8value_t* @object, cef_v8value_t** retval, cef_string_t* exception)
+        internal int get_byindex(cef_v8interceptor_t* self, int index, cef_v8value_t* @object, cef_v8value_t** retval, cef_string_t* exception)
         {
             CheckSelf(self);
 
@@ -90,7 +90,7 @@
         }
 
 
-        private int set_byname(cef_v8interceptor_t* self, cef_string_t* name, cef_v8value_t* @object, cef_v8value_t* value, cef_string_t* exception)
+        internal int set_byname(cef_v8interceptor_t* self, cef_string_t* name, cef_v8value_t* @object, cef_v8value_t* value, cef_string_t* exception)
         {
             CheckSelf(self);
 
@@ -125,7 +125,7 @@
         }
 
 
-        private int set_byindex(cef_v8interceptor_t* self, int index, cef_v8value_t* @object, cef_v8value_t* value, cef_string_t* exception)
+        internal int set_byindex(cef_v8interceptor_t* self, int index, cef_v8value_t* @object, cef_v8value_t* value, cef_string_t* exception)
         {
             CheckSelf(self);
 

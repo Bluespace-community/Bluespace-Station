@@ -1,4 +1,5 @@
 ﻿using Content.Client.Eui;
+using Content.Server.Ghost.Roles.Raffles;
 using Content.Shared.Eui;
 using Content.Shared.Ghost.Roles;
 using JetBrains.Annotations;
@@ -6,71 +7,80 @@ using Robust.Client.Console;
 using Robust.Client.Player;
 using Robust.Shared.Utility;
 
-namespace Content.Client.UserInterface.Systems.Ghost.Controls.Roles
+namespace Content.Client.UserInterface.Systems.Ghost.Controls.Roles;
+
+[UsedImplicitly]
+public sealed class MakeGhostRoleEui : BaseEui
 {
-    [UsedImplicitly]
-    public sealed class MakeGhostRoleEui : BaseEui
+    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
+
+    private readonly MakeGhostRoleWindow _window;
+
+    public MakeGhostRoleEui()
     {
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
+        _window = new MakeGhostRoleWindow();
 
-        private readonly MakeGhostRoleWindow _window;
+        _window.OnClose += OnClose;
+        _window.OnMake += OnMake;
+    }
 
-        public MakeGhostRoleEui()
+    public override void HandleState(EuiStateBase state)
+    {
+        if (state is not MakeGhostRoleEuiState uiState)
         {
-            _window = new MakeGhostRoleWindow();
-
-
-            _window.OnClose += OnClose;
-            _window.OnMake += OnMake;
+            return;
         }
 
-        public override void HandleState(EuiStateBase state)
-        {
-            if (state is not MakeGhostRoleEuiState uiState)
-            {
-                return;
-            }
+        _window.SetEntity(_entManager, uiState.Entity);
+    }
 
-            _window.SetEntity(uiState.EntityUid);
+    public override void Opened()
+    {
+        base.Opened();
+        _window.OpenCentered();
+    }
+
+    private void OnMake(NetEntity entity, string name, string description, string rules, bool makeSentient, GhostRoleRaffleSettings? raffleSettings)
+    {
+        var session = _playerManager.LocalSession;
+        if (session == null)
+        {
+            return;
         }
 
-        public override void Opened()
+        var command = raffleSettings is not null ? "makeghostroleraffled" : "makeghostrole";
+
+        var makeGhostRoleCommand =
+            $"{command} " +
+            $"\"{CommandParsing.Escape(entity.ToString())}\" " +
+            $"\"{CommandParsing.Escape(name)}\" " +
+            $"\"{CommandParsing.Escape(description)}\" ";
+
+        if (raffleSettings is not null)
         {
-            base.Opened();
-            _window.OpenCentered();
+            makeGhostRoleCommand += $"{raffleSettings.InitialDuration} " +
+                                    $"{raffleSettings.JoinExtendsDurationBy} " +
+                                    $"{raffleSettings.MaxDuration} ";
         }
 
-        private void OnMake(EntityUid uid, string name, string description, string rules, bool makeSentient)
+        makeGhostRoleCommand += $"\"{CommandParsing.Escape(rules)}\"";
+
+        _consoleHost.ExecuteCommand(session, makeGhostRoleCommand);
+
+        if (makeSentient)
         {
-            var player = _playerManager.LocalPlayer;
-            if (player == null)
-            {
-                return;
-            }
-
-            var makeGhostRoleCommand =
-                $"makeghostrole " +
-                $"\"{CommandParsing.Escape(uid.ToString())}\" " +
-                $"\"{CommandParsing.Escape(name)}\" " +
-                $"\"{CommandParsing.Escape(description)}\" " +
-                $"\"{CommandParsing.Escape(rules)}\"";
-
-            _consoleHost.ExecuteCommand(player.Session, makeGhostRoleCommand);
-
-            if (makeSentient)
-            {
-                var makeSentientCommand = $"makesentient \"{CommandParsing.Escape(uid.ToString())}\"";
-                _consoleHost.ExecuteCommand(player.Session, makeSentientCommand);
-            }
-
-            _window.Close();
+            var makeSentientCommand = $"makesentient \"{CommandParsing.Escape(entity.ToString())}\"";
+            _consoleHost.ExecuteCommand(session, makeSentientCommand);
         }
 
-        private void OnClose()
-        {
-            base.Closed();
-            SendMessage(new CloseEuiMessage());
-        }
+        _window.Close();
+    }
+
+    private void OnClose()
+    {
+        base.Closed();
+        SendMessage(new CloseEuiMessage());
     }
 }

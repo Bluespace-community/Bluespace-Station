@@ -13,77 +13,90 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_jsdialog_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_jsdialog;
-        internal IntPtr _on_before_unload_dialog;
-        internal IntPtr _on_reset_dialog_state;
-        internal IntPtr _on_dialog_closed;
+        internal delegate* unmanaged<cef_jsdialog_handler_t*, cef_browser_t*, cef_string_t*, CefJSDialogType, cef_string_t*, cef_string_t*, cef_jsdialog_callback_t*, int*, int> _on_jsdialog;
+        internal delegate* unmanaged<cef_jsdialog_handler_t*, cef_browser_t*, cef_string_t*, int, cef_jsdialog_callback_t*, int> _on_before_unload_dialog;
+        internal delegate* unmanaged<cef_jsdialog_handler_t*, cef_browser_t*, void> _on_reset_dialog_state;
+        internal delegate* unmanaged<cef_jsdialog_handler_t*, cef_browser_t*, void> _on_dialog_closed;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_jsdialog_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_jsdialog_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_jsdialog_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_jsdialog_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_jsdialog_delegate(cef_jsdialog_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, CefJSDialogType dialog_type, cef_string_t* message_text, cef_string_t* default_prompt_text, cef_jsdialog_callback_t* callback, int* suppress_message);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_before_unload_dialog_delegate(cef_jsdialog_handler_t* self, cef_browser_t* browser, cef_string_t* message_text, int is_reload, cef_jsdialog_callback_t* callback);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_reset_dialog_state_delegate(cef_jsdialog_handler_t* self, cef_browser_t* browser);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_dialog_closed_delegate(cef_jsdialog_handler_t* self, cef_browser_t* browser);
-        
-        private static int _sizeof;
-        
-        static cef_jsdialog_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_jsdialog_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_jsdialog_handler_t));
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_jsdialog_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_jsdialog_handler_t* self)
         {
-            var ptr = (cef_jsdialog_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_jsdialog_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_jsdialog_handler_t* self)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_jsdialog_handler_t* self)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_jsdialog(cef_jsdialog_handler_t* self, cef_browser_t* browser, cef_string_t* origin_url, CefJSDialogType dialog_type, cef_string_t* message_text, cef_string_t* default_prompt_text, cef_jsdialog_callback_t* callback, int* suppress_message)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            return obj.on_jsdialog(self, browser, origin_url, dialog_type, message_text, default_prompt_text, callback, suppress_message);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_before_unload_dialog(cef_jsdialog_handler_t* self, cef_browser_t* browser, cef_string_t* message_text, int is_reload, cef_jsdialog_callback_t* callback)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            return obj.on_before_unload_dialog(self, browser, message_text, is_reload, callback);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_reset_dialog_state(cef_jsdialog_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            obj.on_reset_dialog_state(self, browser);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_dialog_closed(cef_jsdialog_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefJSDialogHandler)self->_obj.Target;
+            obj.on_dialog_closed(self, browser);
+        }
+        
+        internal static cef_jsdialog_handler_t* Alloc(CefJSDialogHandler obj)
+        {
+            var ptr = (cef_jsdialog_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_jsdialog_handler_t));
+            *ptr = default(cef_jsdialog_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_jsdialog_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_jsdialog_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_jsdialog_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_jsdialog_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_jsdialog_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_jsdialog = &on_jsdialog;
+            ptr->_on_before_unload_dialog = &on_before_unload_dialog;
+            ptr->_on_reset_dialog_state = &on_reset_dialog_state;
+            ptr->_on_dialog_closed = &on_dialog_closed;
             return ptr;
         }
         
         internal static void Free(cef_jsdialog_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

@@ -13,70 +13,81 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_resource_bundle_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _get_localized_string;
-        internal IntPtr _get_data_resource;
-        internal IntPtr _get_data_resource_for_scale;
+        internal delegate* unmanaged<cef_resource_bundle_handler_t*, int, cef_string_t*, int> _get_localized_string;
+        internal delegate* unmanaged<cef_resource_bundle_handler_t*, int, void**, UIntPtr*, int> _get_data_resource;
+        internal delegate* unmanaged<cef_resource_bundle_handler_t*, int, CefScaleFactor, void**, UIntPtr*, int> _get_data_resource_for_scale;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_resource_bundle_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_resource_bundle_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_resource_bundle_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_resource_bundle_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_localized_string_delegate(cef_resource_bundle_handler_t* self, int string_id, cef_string_t* @string);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_data_resource_delegate(cef_resource_bundle_handler_t* self, int resource_id, void** data, UIntPtr* data_size);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_data_resource_for_scale_delegate(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size);
-        
-        private static int _sizeof;
-        
-        static cef_resource_bundle_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_resource_bundle_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_resource_bundle_handler_t));
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_resource_bundle_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_resource_bundle_handler_t* self)
         {
-            var ptr = (cef_resource_bundle_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_resource_bundle_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_resource_bundle_handler_t* self)
+        {
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_resource_bundle_handler_t* self)
+        {
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_localized_string(cef_resource_bundle_handler_t* self, int string_id, cef_string_t* @string)
+        {
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.get_localized_string(self, string_id, @string);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_data_resource(cef_resource_bundle_handler_t* self, int resource_id, void** data, UIntPtr* data_size)
+        {
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.get_data_resource(self, resource_id, data, data_size);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_data_resource_for_scale(cef_resource_bundle_handler_t* self, int resource_id, CefScaleFactor scale_factor, void** data, UIntPtr* data_size)
+        {
+            var obj = (CefResourceBundleHandler)self->_obj.Target;
+            return obj.get_data_resource_for_scale(self, resource_id, scale_factor, data, data_size);
+        }
+        
+        internal static cef_resource_bundle_handler_t* Alloc(CefResourceBundleHandler obj)
+        {
+            var ptr = (cef_resource_bundle_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_resource_bundle_handler_t));
+            *ptr = default(cef_resource_bundle_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_resource_bundle_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_resource_bundle_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_resource_bundle_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_resource_bundle_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_resource_bundle_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_get_localized_string = &get_localized_string;
+            ptr->_get_data_resource = &get_data_resource;
+            ptr->_get_data_resource_for_scale = &get_data_resource_for_scale;
             return ptr;
         }
         
         internal static void Free(cef_resource_bundle_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

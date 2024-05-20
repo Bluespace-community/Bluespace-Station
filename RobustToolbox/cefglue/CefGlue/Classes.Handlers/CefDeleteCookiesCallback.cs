@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefDeleteCookiesCallback
     {
-        private void on_complete(cef_delete_cookies_callback_t* self, int num_deleted)
+        internal void on_complete(cef_delete_cookies_callback_t* self, int num_deleted)
         {
             CheckSelf(self);
             OnComplete(num_deleted);

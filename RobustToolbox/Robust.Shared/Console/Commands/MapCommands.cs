@@ -10,7 +10,8 @@ namespace Robust.Shared.Console.Commands;
 
 sealed class AddMapCommand : LocalizedCommands
 {
-    [Dependency] private readonly IMapManager _map = default!;
+    [Dependency] private readonly IMapManagerInternal _map = default!;
+    [Dependency] private readonly IEntityManager _entMan = default!;
 
     public override string Command => "addmap";
     public override bool RequireServerOrSingleplayer => true;
@@ -24,11 +25,8 @@ sealed class AddMapCommand : LocalizedCommands
 
         if (!_map.MapExists(mapId))
         {
-            _map.CreateMap(mapId);
-            if (args.Length >= 2 && args[1] == "false")
-            {
-                _map.AddUninitializedMap(mapId);
-            }
+            var init = args.Length < 2 || !bool.Parse(args[1]);
+            _entMan.System<SharedMapSystem>().CreateMap(mapId, runMapInit: init);
 
             shell.WriteLine($"Map with ID {mapId} created.");
             return;
@@ -84,7 +82,7 @@ sealed class RemoveGridCommand : LocalizedCommands
 
         var gridIdNet = NetEntity.Parse(args[0]);
 
-        if (!_entManager.TryGetEntity(gridIdNet, out var gridId) || !_map.GridExists(gridId))
+        if (!_entManager.TryGetEntity(gridIdNet, out var gridId) || !_entManager.HasComponent<MapGridComponent>(gridId))
         {
             shell.WriteError($"Grid {gridId} does not exist.");
             return;
@@ -131,6 +129,7 @@ internal sealed class RunMapInitCommand : LocalizedCommands
 
 internal sealed class ListMapsCommand : LocalizedCommands
 {
+    [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly IMapManager _map = default!;
 
     public override string Command => "lsmap";
@@ -144,11 +143,14 @@ internal sealed class ListMapsCommand : LocalizedCommands
 
         foreach (var mapId in _map.GetAllMapIds().OrderBy(id => id.Value))
         {
-            msg.AppendFormat("{0}: init: {1}, paused: {2}, ent: {3}, grids: {4}\n",
-                mapId, _map.IsMapInitialized(mapId),
+            var mapUid = _map.GetMapEntityId(mapId);
+
+            msg.AppendFormat("{0}: {1}, init: {2}, paused: {3}, nent: {4}, grids: {5}\n",
+                mapId, _entManager.GetComponent<MetaDataComponent>(mapUid).EntityName,
+                _map.IsMapInitialized(mapId),
                 _map.IsMapPaused(mapId),
-                _map.GetMapEntityId(mapId),
-                string.Join(",", _map.GetAllMapGrids(mapId).Select(grid => grid.Owner)));
+                _entManager.GetNetEntity(_map.GetMapEntityId(mapId)),
+                string.Join(",", _map.GetAllGrids(mapId).Select(grid => grid.Owner)));
         }
 
         shell.WriteLine(msg.ToString());

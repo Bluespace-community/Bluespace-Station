@@ -13,7 +13,7 @@
     /// </summary>
     public abstract unsafe partial class CefRenderProcessHandler
     {
-        private void on_web_kit_initialized(cef_render_process_handler_t* self)
+        internal void on_web_kit_initialized(cef_render_process_handler_t* self)
         {
             CheckSelf(self);
 
@@ -28,7 +28,7 @@
         }
 
 
-        private void on_browser_created(cef_render_process_handler_t* self, cef_browser_t* browser, cef_dictionary_value_t* extra_info)
+        internal void on_browser_created(cef_render_process_handler_t* self, cef_browser_t* browser, cef_dictionary_value_t* extra_info)
         {
             CheckSelf(self);
 
@@ -43,14 +43,15 @@
         /// browser will be created before the old browser with the same identifier is
         /// destroyed. |extra_info| is an optional read-only value originating from
         /// CefBrowserHost::CreateBrowser(), CefBrowserHost::CreateBrowserSync(),
-        /// CefLifeSpanHandler::OnBeforePopup() or CefBrowserView::CreateBrowserView().
+        /// CefLifeSpanHandler::OnBeforePopup() or
+        /// CefBrowserView::CreateBrowserView().
         /// </summary>
         protected virtual void OnBrowserCreated(CefBrowser browser, CefDictionaryValue? extraInfo)
         {
         }
 
 
-        private void on_browser_destroyed(cef_render_process_handler_t* self, cef_browser_t* browser)
+        internal void on_browser_destroyed(cef_render_process_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 
@@ -67,7 +68,7 @@
         }
 
 
-        private cef_load_handler_t* get_load_handler(cef_render_process_handler_t* self)
+        internal cef_load_handler_t* get_load_handler(cef_render_process_handler_t* self)
         {
             CheckSelf(self);
 
@@ -85,7 +86,7 @@
         }
 
 
-        private void on_context_created(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context)
+        internal void on_context_created(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context)
         {
             CheckSelf(self);
 
@@ -108,7 +109,7 @@
         }
 
 
-        private void on_context_released(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context)
+        internal void on_context_released(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context)
         {
             CheckSelf(self);
 
@@ -128,7 +129,7 @@
         }
 
 
-        private void on_uncaught_exception(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context, cef_v8exception_t* exception, cef_v8stack_trace_t* stackTrace)
+        internal void on_uncaught_exception(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_v8context_t* context, cef_v8exception_t* exception, cef_v8stack_trace_t* stackTrace)
         {
             CheckSelf(self);
 
@@ -144,14 +145,14 @@
         /// <summary>
         /// Called for global uncaught exceptions in a frame. Execution of this
         /// callback is disabled by default. To enable set
-        /// CefSettings.uncaught_exception_stack_size &gt; 0.
+        /// cef_settings_t.uncaught_exception_stack_size &gt; 0.
         /// </summary>
         protected virtual void OnUncaughtException(CefBrowser browser, CefFrame frame, CefV8Context context, CefV8Exception exception, CefV8StackTrace stackTrace)
         {
         }
 
 
-        private void on_focused_node_changed(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_domnode_t* node)
+        internal void on_focused_node_changed(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_domnode_t* node)
         {
             CheckSelf(self);
 
@@ -177,26 +178,26 @@
         }
 
 
-        private int on_process_message_received(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefProcessId source_process, cef_process_message_t* message)
+        internal int on_process_message_received(cef_render_process_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, CefProcessId source_process, cef_process_message_t* message)
         {
             CheckSelf(self);
 
             var m_browser = CefBrowser.FromNative(browser);
             var m_frame = CefFrame.FromNative(frame);
+
+            // Client is responsible to call `Dispose()` on message when it no more needed.
             var m_message = CefProcessMessage.FromNative(message);
 
             var result = OnProcessMessageReceived(m_browser, m_frame, source_process, m_message);
-
-            m_message.Dispose();
-
             return result ? 1 : 0;
         }
 
         /// <summary>
-        /// Called when a new message is received from a different process. Return true
-        /// if the message was handled or false otherwise. It is safe to keep a
+        /// Called when a new message is received from a different process. Return
+        /// true if the message was handled or false otherwise. It is safe to keep a
         /// reference to |message| outside of this callback.
         /// </summary>
+        /// <remarks>Client code is responsible to call CefProcessMessage::Dispose() when it no more needed.</remarks>
         protected virtual bool OnProcessMessageReceived(CefBrowser browser, CefFrame frame, CefProcessId sourceProcess, CefProcessMessage message)
         {
             return false;

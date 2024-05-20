@@ -226,6 +226,33 @@ namespace NetSerializer
 		}
 
 		/// <summary>
+		/// Output the type data that <see cref="GetSHA256"/> calculates a hash from.
+		/// </summary>
+		/// <remarks>
+		/// This can be manually inspected for debugging purposes.
+        /// </remarks>
+		/// <param name="writeTo">Stream to write the result into.</param>
+		/// <param name="writeNewlines">
+		/// Whether to write newline delimiters between entries.
+		/// When true, it is not the canonical form of the data but may make it easier to read.
+		/// </param>
+		public void GetHashManifest(Stream writeTo, bool writeNewlines=false)
+		{
+			using var writer = new StreamWriter(writeTo, leaveOpen: true);
+
+			lock (m_modifyLock)
+			{
+				foreach (var item in m_runtimeTypeIDList.ToSortedList())
+				{
+					writer.Write(item.Key);
+					writer.Write(item.Value.FullName);
+					if (writeNewlines)
+						writer.Write('\n');
+				}
+			}
+		}
+
+		/// <summary>
 		/// Get SHA256 of the serializer type data. The SHA includes TypeIDs and Type's full names.
 		/// The SHA can be used as a relatively good check to verify that two serializers
 		/// (e.g. client and server) have the same type data.
@@ -234,21 +261,11 @@ namespace NetSerializer
 		{
 			var stream = new MemoryStream();
 
-			using (var writer = new StreamWriter(stream, leaveOpen: true))
-			{
-				lock (m_modifyLock)
-				{
-					foreach (var item in m_runtimeTypeIDList.ToSortedList())
-					{
-						writer.Write(item.Key);
-						writer.Write(item.Value.FullName);
-					}
-				}
-			}
+			GetHashManifest(stream);
 
 			stream.Position = 0;
 
-			var sha256 = System.Security.Cryptography.SHA256.Create();
+			using var sha256 = System.Security.Cryptography.SHA256.Create();
 			var bytes = sha256.ComputeHash(stream);
 
 			return Convert.ToHexString(bytes);

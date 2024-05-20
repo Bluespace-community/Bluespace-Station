@@ -15,7 +15,7 @@
         private static readonly CefRectangle[] s_emptyRectangleArray = new CefRectangle[0];
 
 
-        private cef_accessibility_handler_t* get_accessibility_handler(cef_render_handler_t* self)
+        internal cef_accessibility_handler_t* get_accessibility_handler(cef_render_handler_t* self)
         {
             CheckSelf(self);
             var result = GetAccessibilityHandler();
@@ -30,7 +30,7 @@
         protected abstract CefAccessibilityHandler GetAccessibilityHandler();
 
 
-        private int get_root_screen_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        internal int get_root_screen_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
         {
             CheckSelf(self);
 
@@ -51,9 +51,9 @@
         }
 
         /// <summary>
-        /// Called to retrieve the root window rectangle in screen coordinates. Return
-        /// true if the rectangle was provided. If this method returns false the
-        /// rectangle from GetViewRect will be used.
+        /// Called to retrieve the root window rectangle in screen DIP coordinates.
+        /// Return true if the rectangle was provided. If this method returns false
+        /// the rectangle from GetViewRect will be used.
         /// </summary>
         protected virtual bool GetRootScreenRect(CefBrowser browser, ref CefRectangle rect)
         {
@@ -62,7 +62,7 @@
         }
 
 
-        private void get_view_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        internal void get_view_rect(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
         {
             CheckSelf(self);
 
@@ -78,13 +78,13 @@
         }
 
         /// <summary>
-        /// Called to retrieve the view rectangle which is relative to screen
-        /// coordinates. This method must always provide a non-empty rectangle.
+        /// Called to retrieve the view rectangle in screen DIP coordinates. This
+        /// method must always provide a non-empty rectangle.
         /// </summary>
         protected abstract void GetViewRect(CefBrowser browser, out CefRectangle rect);
 
 
-        private int get_screen_point(cef_render_handler_t* self, cef_browser_t* browser, int viewX, int viewY, int* screenX, int* screenY)
+        internal int get_screen_point(cef_render_handler_t* self, cef_browser_t* browser, int viewX, int viewY, int* screenX, int* screenY)
         {
             CheckSelf(self);
 
@@ -105,8 +105,10 @@
         }
 
         /// <summary>
-        /// Called to retrieve the translation from view coordinates to actual screen
-        /// coordinates. Return true if the screen coordinates were provided.
+        /// Called to retrieve the translation from view DIP coordinates to screen
+        /// coordinates. Windows/Linux should provide screen device (pixel)
+        /// coordinates and MacOS should provide screen DIP coordinates. Return true
+        /// if the requested coordinates were provided.
         /// </summary>
         protected virtual bool GetScreenPoint(CefBrowser browser, int viewX, int viewY, ref int screenX, ref int screenY)
         {
@@ -114,7 +116,7 @@
         }
 
 
-        private int get_screen_info(cef_render_handler_t* self, cef_browser_t* browser, cef_screen_info_t* screen_info)
+        internal int get_screen_info(cef_render_handler_t* self, cef_browser_t* browser, cef_screen_info_t* screen_info)
         {
             CheckSelf(self);
 
@@ -140,7 +142,7 @@
         protected abstract bool GetScreenInfo(CefBrowser browser, CefScreenInfo screenInfo);
 
 
-        private void on_popup_show(cef_render_handler_t* self, cef_browser_t* browser, int show)
+        internal void on_popup_show(cef_render_handler_t* self, cef_browser_t* browser, int show)
         {
             CheckSelf(self);
 
@@ -158,7 +160,7 @@
         }
 
 
-        private void on_popup_size(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
+        internal void on_popup_size(cef_render_handler_t* self, cef_browser_t* browser, cef_rect_t* rect)
         {
             CheckSelf(self);
 
@@ -175,7 +177,7 @@
         protected abstract void OnPopupSize(CefBrowser browser, CefRectangle rect);
 
 
-        private void on_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* buffer, int width, int height)
+        internal void on_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* buffer, int width, int height)
         {
             CheckSelf(self);
 
@@ -205,15 +207,15 @@
         /// CefScreenInfo.device_scale_factor returned from GetScreenInfo. |type|
         /// indicates whether the element is the view or the popup widget. |buffer|
         /// contains the pixel data for the whole image. |dirtyRects| contains the set
-        /// of rectangles in pixel coordinates that need to be repainted. |buffer| will
-        /// be |width|*|height|*4 bytes in size and represents a BGRA image with an
-        /// upper-left origin. This method is only called when CefWindowInfo::SharedTextureEnabled
-        /// is set to false.
+        /// of rectangles in pixel coordinates that need to be repainted. |buffer|
+        /// will be |width|*|height|*4 bytes in size and represents a BGRA image with
+        /// an upper-left origin. This method is only called when
+        /// CefWindowInfo::shared_texture_enabled is set to false.
         /// </summary>
         protected abstract void OnPaint(CefBrowser browser, CefPaintElementType type, CefRectangle[] dirtyRects, IntPtr buffer, int width, int height);
 
 
-        private void on_accelerated_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* shared_handle)
+        internal void on_accelerated_paint(cef_render_handler_t* self, cef_browser_t* browser, CefPaintElementType type, UIntPtr dirtyRectsCount, cef_rect_t* dirtyRects, void* shared_handle)
         {
             CheckSelf(self);
 
@@ -249,7 +251,44 @@
         protected abstract void OnAcceleratedPaint(CefBrowser browser, CefPaintElementType type, CefRectangle[] dirtyRects, IntPtr sharedHandle);
 
 
-        private int start_dragging(cef_render_handler_t* self, cef_browser_t* browser, cef_drag_data_t* drag_data, CefDragOperationsMask allowed_ops, int x, int y)
+        internal void get_touch_handle_size(cef_render_handler_t* self, cef_browser_t* browser, CefHorizontalAlignment orientation, cef_size_t* size)
+        {
+            CheckSelf(self);
+
+            var mBrowser = CefBrowser.FromNative(browser);
+            CefSize mSize;
+            GetTouchHandleSize(mBrowser, orientation, out mSize);
+            size->width = mSize.Width;
+            size->height = mSize.Height;
+        }
+
+        /// <summary>
+        /// Called to retrieve the size of the touch handle for the specified
+        /// |orientation|.
+        /// </summary>
+        protected virtual void GetTouchHandleSize(CefBrowser browser, CefHorizontalAlignment orientation, out CefSize size)
+            => size = default;
+
+
+        internal void on_touch_handle_state_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_touch_handle_state_t* state)
+        {
+            CheckSelf(self);
+
+            var mBrowser = CefBrowser.FromNative(browser);
+            // TODO: For CefGlue vNext structs should be passed by ref (`in` in this case),
+            // without copying, when possible.
+            OnTouchHandleStateChanged(mBrowser, new CefTouchHandleState(state));
+        }
+
+        /// <summary>
+        /// Called when touch handle state is updated. The client is responsible for
+        /// rendering the touch handles.
+        /// </summary>
+        protected virtual void OnTouchHandleStateChanged(CefBrowser browser, CefTouchHandleState state)
+        { }
+
+
+        internal int start_dragging(cef_render_handler_t* self, cef_browser_t* browser, cef_drag_data_t* drag_data, CefDragOperationsMask allowed_ops, int x, int y)
         {
             CheckSelf(self);
 
@@ -280,7 +319,7 @@
         }
 
 
-        private void update_drag_cursor(cef_render_handler_t* self, cef_browser_t* browser, CefDragOperationsMask operation)
+        internal void update_drag_cursor(cef_render_handler_t* self, cef_browser_t* browser, CefDragOperationsMask operation)
         {
             CheckSelf(self);
 
@@ -299,7 +338,7 @@
         }
 
 
-        private void on_scroll_offset_changed(cef_render_handler_t* self, cef_browser_t* browser, double x, double y)
+        internal void on_scroll_offset_changed(cef_render_handler_t* self, cef_browser_t* browser, double x, double y)
         {
             CheckSelf(self);
 
@@ -314,7 +353,7 @@
         protected abstract void OnScrollOffsetChanged(CefBrowser browser, double x, double y);
 
 
-        private void on_ime_composition_range_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds)
+        internal void on_ime_composition_range_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_range_t* selected_range, UIntPtr character_boundsCount, cef_rect_t* character_bounds)
         {
             CheckSelf(self);
 
@@ -354,7 +393,7 @@
         protected abstract void OnImeCompositionRangeChanged(CefBrowser browser, CefRange selectedRange, CefRectangle[] characterBounds);
 
 
-        private void on_text_selection_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_string_t* selected_text, cef_range_t* selected_range)
+        internal void on_text_selection_changed(cef_render_handler_t* self, cef_browser_t* browser, cef_string_t* selected_text, cef_range_t* selected_range)
         {
             CheckSelf(self);
 
@@ -373,7 +412,7 @@
         protected virtual void OnTextSelectionChanged(CefBrowser browser, string selectedText, CefRange selectedRange) { }
 
 
-        private void on_virtual_keyboard_requested(cef_render_handler_t* self, cef_browser_t* browser, CefTextInputMode input_mode)
+        internal void on_virtual_keyboard_requested(cef_render_handler_t* self, cef_browser_t* browser, CefTextInputMode input_mode)
         {
             CheckSelf(self);
 

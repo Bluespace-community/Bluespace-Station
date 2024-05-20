@@ -25,8 +25,6 @@ network-configurator-title-saved-devices = Saved Devices
 network-configurator-title-device-configuration = Device Configuration
 network-configurator-ui-clear-button = Clear
 network-configurator-ui-count-label = {$count} Devices
-network-configurator-clear-network-link-overlays = Clear network link overlays
-network-configurator-clear-network-link-overlays-desc = Clear network link overlays.
 
 # tooltips
 network-configurator-tooltip-set = Sets targets device list
@@ -43,5 +41,5 @@ network-configurator-examine-current-mode = Current mode: {$mode}
 network-configurator-examine-switch-modes = Press {$key} to switch modes
 
 # item status
-network-configurator-item-status-label = Current mode: {$mode}
-{$keybinding} to switch mode
+network-configurator-item-status-label = Mode: {$mode}
+    Switch: {$keybinding}

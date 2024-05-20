@@ -13,63 +13,72 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_drag_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _on_drag_enter;
-        internal IntPtr _on_draggable_regions_changed;
+        internal delegate* unmanaged<cef_drag_handler_t*, cef_browser_t*, cef_drag_data_t*, CefDragOperationsMask, int> _on_drag_enter;
+        internal delegate* unmanaged<cef_drag_handler_t*, cef_browser_t*, cef_frame_t*, UIntPtr, cef_draggable_region_t*, void> _on_draggable_regions_changed;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_drag_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_drag_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_drag_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_drag_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int on_drag_enter_delegate(cef_drag_handler_t* self, cef_browser_t* browser, cef_drag_data_t* dragData, CefDragOperationsMask mask);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_draggable_regions_changed_delegate(cef_drag_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, UIntPtr regionsCount, cef_draggable_region_t* regions);
-        
-        private static int _sizeof;
-        
-        static cef_drag_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_drag_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_drag_handler_t));
+            var obj = (CefDragHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_drag_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_drag_handler_t* self)
         {
-            var ptr = (cef_drag_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_drag_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefDragHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_drag_handler_t* self)
+        {
+            var obj = (CefDragHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_drag_handler_t* self)
+        {
+            var obj = (CefDragHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int on_drag_enter(cef_drag_handler_t* self, cef_browser_t* browser, cef_drag_data_t* dragData, CefDragOperationsMask mask)
+        {
+            var obj = (CefDragHandler)self->_obj.Target;
+            return obj.on_drag_enter(self, browser, dragData, mask);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_draggable_regions_changed(cef_drag_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, UIntPtr regionsCount, cef_draggable_region_t* regions)
+        {
+            var obj = (CefDragHandler)self->_obj.Target;
+            obj.on_draggable_regions_changed(self, browser, frame, regionsCount, regions);
+        }
+        
+        internal static cef_drag_handler_t* Alloc(CefDragHandler obj)
+        {
+            var ptr = (cef_drag_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_drag_handler_t));
+            *ptr = default(cef_drag_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_drag_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_drag_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_drag_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_drag_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_drag_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_on_drag_enter = &on_drag_enter;
+            ptr->_on_draggable_regions_changed = &on_draggable_regions_changed;
             return ptr;
         }
         
         internal static void Free(cef_drag_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

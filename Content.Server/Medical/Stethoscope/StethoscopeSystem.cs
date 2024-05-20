@@ -1,19 +1,20 @@
 using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
+using Content.Server.Medical.Stethoscope.Components;
 using Content.Server.Popups;
 using Content.Shared.Actions;
-using Content.Shared.Clothing.Components;
+using Content.Shared.Clothing;
 using Content.Shared.Damage;
+using Content.Shared.DoAfter;
 using Content.Shared.FixedPoint;
-using Content.Shared.Inventory.Events;
-using Content.Shared.Verbs;
+using Content.Shared.Medical;
+using Content.Shared.Medical.Stethoscope;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Content.Shared.DoAfter;
-using Content.Shared.Medical;
+using Content.Shared.Verbs;
 using Robust.Shared.Utility;
 
-namespace Content.Server.Medical
+namespace Content.Server.Medical.Stethoscope
 {
     public sealed class StethoscopeSystem : EntitySystem
     {
@@ -24,8 +25,8 @@ namespace Content.Server.Medical
         public override void Initialize()
         {
             base.Initialize();
-            SubscribeLocalEvent<StethoscopeComponent, GotEquippedEvent>(OnEquipped);
-            SubscribeLocalEvent<StethoscopeComponent, GotUnequippedEvent>(OnUnequipped);
+            SubscribeLocalEvent<StethoscopeComponent, ClothingGotEquippedEvent>(OnEquipped);
+            SubscribeLocalEvent<StethoscopeComponent, ClothingGotUnequippedEvent>(OnUnequipped);
             SubscribeLocalEvent<WearingStethoscopeComponent, GetVerbsEvent<InnateVerb>>(AddStethoscopeVerb);
             SubscribeLocalEvent<StethoscopeComponent, GetItemActionsEvent>(OnGetActions);
             SubscribeLocalEvent<StethoscopeComponent, StethoscopeActionEvent>(OnStethoscopeAction);
@@ -35,26 +36,20 @@ namespace Content.Server.Medical
         /// <summary>
         /// Add the component the verb event subs to if the equippee is wearing the stethoscope.
         /// </summary>
-        private void OnEquipped(EntityUid uid, StethoscopeComponent component, GotEquippedEvent args)
+        private void OnEquipped(EntityUid uid, StethoscopeComponent component, ref ClothingGotEquippedEvent args)
         {
-            if (!TryComp<ClothingComponent>(uid, out var clothing))
-                return;
-            // Is the clothing in its actual slot?
-            if (!clothing.Slots.HasFlag(args.SlotFlags))
-                return;
-
             component.IsActive = true;
 
-            var wearingComp = EnsureComp<WearingStethoscopeComponent>(args.Equipee);
+            var wearingComp = EnsureComp<WearingStethoscopeComponent>(args.Wearer);
             wearingComp.Stethoscope = uid;
         }
 
-        private void OnUnequipped(EntityUid uid, StethoscopeComponent component, GotUnequippedEvent args)
+        private void OnUnequipped(EntityUid uid, StethoscopeComponent component, ref ClothingGotUnequippedEvent args)
         {
             if (!component.IsActive)
                 return;
 
-            RemComp<WearingStethoscopeComponent>(args.Equipee);
+            RemComp<WearingStethoscopeComponent>(args.Wearer);
             component.IsActive = false;
         }
 
@@ -97,17 +92,16 @@ namespace Content.Server.Medical
 
         private void OnGetActions(EntityUid uid, StethoscopeComponent component, GetItemActionsEvent args)
         {
-            args.Actions.Add(component.Action);
+            args.AddAction(ref component.ActionEntity, component.Action);
         }
 
         // construct the doafter and start it
         private void StartListening(EntityUid scope, EntityUid user, EntityUid target, StethoscopeComponent comp)
         {
-            _doAfterSystem.TryStartDoAfter(new DoAfterArgs(user, comp.Delay, new StethoscopeDoAfterEvent(), scope, target: target, used: scope)
+            _doAfterSystem.TryStartDoAfter(new DoAfterArgs(EntityManager, user, comp.Delay, new StethoscopeDoAfterEvent(), scope, target: target, used: scope)
             {
-                BreakOnTargetMove = true,
-                BreakOnUserMove = true,
-                NeedHand = true
+                NeedHand = true,
+                BreakOnMove = true,
             });
         }
 
@@ -156,6 +150,4 @@ namespace Content.Server.Medical
             return msg;
         }
     }
-
-    public sealed partial class StethoscopeActionEvent : EntityTargetActionEvent {}
 }

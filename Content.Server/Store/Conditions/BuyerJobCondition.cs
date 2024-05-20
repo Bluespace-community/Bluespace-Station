@@ -34,19 +34,18 @@ public sealed partial class BuyerJobCondition : ListingCondition
             return true;
 
         var jobs = ent.System<SharedJobSystem>();
-        if (jobs.MindTryGetJob(mindId, out var job, out _))
-        {
-            if (Blacklist != null)
-            {
-                if (job.PrototypeId != null && Blacklist.Contains(job.PrototypeId))
-                    return false;
-            }
+        jobs.MindTryGetJob(mindId, out var job, out _);
 
-            if (Whitelist != null)
-            {
-                if (job.PrototypeId == null || !Whitelist.Contains(job.PrototypeId))
-                    return false;
-            }
+        if (Blacklist != null)
+        {
+            if (job?.Prototype != null && Blacklist.Contains(job.Prototype))
+                return false;
+        }
+
+        if (Whitelist != null)
+        {
+            if (job?.Prototype == null || !Whitelist.Contains(job.Prototype))
+                return false;
         }
 
         return true;

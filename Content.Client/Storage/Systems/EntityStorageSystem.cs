@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Content.Client.Storage.Components;
 using Content.Shared.Destructible;
+using Content.Shared.Foldable;
 using Content.Shared.Interaction;
 using Content.Shared.Lock;
 using Content.Shared.Movement.Events;
@@ -16,6 +17,7 @@ public sealed class EntityStorageSystem : SharedEntityStorageSystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<EntityStorageComponent, EntityUnpausedEvent>(OnEntityUnpausedEvent);
         SubscribeLocalEvent<EntityStorageComponent, ComponentInit>(OnComponentInit);
         SubscribeLocalEvent<EntityStorageComponent, ComponentStartup>(OnComponentStartup);
         SubscribeLocalEvent<EntityStorageComponent, ActivateInWorldEvent>(OnInteract, after: new[] { typeof(LockSystem) });
@@ -23,6 +25,7 @@ public sealed class EntityStorageSystem : SharedEntityStorageSystem
         SubscribeLocalEvent<EntityStorageComponent, DestructionEventArgs>(OnDestruction);
         SubscribeLocalEvent<EntityStorageComponent, GetVerbsEvent<InteractionVerb>>(AddToggleOpenVerb);
         SubscribeLocalEvent<EntityStorageComponent, ContainerRelayMovementEntityEvent>(OnRelayMovement);
+        SubscribeLocalEvent<EntityStorageComponent, FoldAttemptEvent>(OnFoldAttempt);
 
         SubscribeLocalEvent<EntityStorageComponent, ComponentGetState>(OnGetState);
         SubscribeLocalEvent<EntityStorageComponent, ComponentHandleState>(OnHandleState);

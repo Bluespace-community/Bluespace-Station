@@ -38,8 +38,8 @@ public sealed partial class ShuttleSystem
 
         var otherXform = Transform(args.OtherEntity);
 
-        var ourPoint = _transform.GetInvWorldMatrix(ourXform).Transform(args.WorldPoint);
-        var otherPoint = _transform.GetInvWorldMatrix(otherXform).Transform(args.WorldPoint);
+        var ourPoint = ourXform.InvWorldMatrix.Transform(args.WorldPoint);
+        var otherPoint = otherXform.InvWorldMatrix.Transform(args.WorldPoint);
 
         var ourVelocity = _physics.GetLinearVelocity(uid, ourPoint, ourBody, ourXform);
         var otherVelocity = _physics.GetLinearVelocity(args.OtherEntity, otherPoint, otherBody, otherXform);
@@ -54,6 +54,6 @@ public sealed partial class ShuttleSystem
         var volume = MathF.Min(10f, 1f * MathF.Pow(jungleDiff, 0.5f) - 5f);
         var audioParams = AudioParams.Default.WithVariation(SharedContentAudioSystem.DefaultVariation).WithVolume(volume);
 
-        _audio.Play(_shuttleImpactSound, Filter.Pvs(coordinates, rangeMultiplier: 4f, entityMan: EntityManager), coordinates, true, audioParams);
+        _audio.PlayPvs(_shuttleImpactSound, coordinates, audioParams);
     }
 }

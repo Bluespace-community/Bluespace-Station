@@ -1,12 +1,8 @@
-using System.Linq;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Pointing.Components;
 using Content.Shared.Pointing.Components;
 using JetBrains.Annotations;
-using Robust.Server.GameObjects;
-using Robust.Shared.Player;
 using Robust.Shared.Random;
-using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Server.Pointing.EntitySystems
 {
@@ -16,21 +12,25 @@ namespace Content.Server.Pointing.EntitySystems
         [Dependency] private readonly IRobustRandom _random = default!;
         [Dependency] private readonly ExplosionSystem _explosion = default!;
         [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
 
         private EntityUid? RandomNearbyPlayer(EntityUid uid, RoguePointingArrowComponent? component = null, TransformComponent? transform = null)
         {
             if (!Resolve(uid, ref component, ref transform))
                 return null;
 
-            var targets = EntityQuery<PointingArrowAngeringComponent>().ToList();
+            var targets = new List<Entity<PointingArrowAngeringComponent>>();
+            var query = EntityQueryEnumerator<PointingArrowAngeringComponent>();
+            while (query.MoveNext(out var angeringUid, out var angeringComp))
+            {
+                targets.Add((angeringUid, angeringComp));
+            }
 
             if (targets.Count == 0)
                 return null;
 
             var angering = _random.Pick(targets);
-            angering.RemainingAnger -= 1;
-            if (angering.RemainingAnger <= 0)
+            angering.Comp.RemainingAnger -= 1;
+            if (angering.Comp.RemainingAnger <= 0)
                 RemComp<PointingArrowAngeringComponent>(uid);
 
             return angering.Owner;
@@ -54,9 +54,9 @@ namespace Content.Server.Pointing.EntitySystems
 
         public override void Update(float frameTime)
         {
-            foreach (var (component, transform) in EntityManager.EntityQuery<RoguePointingArrowComponent, TransformComponent>())
+            var query = EntityQueryEnumerator<RoguePointingArrowComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var component, out var transform))
             {
-                var uid = component.Owner;
                 component.Chasing ??= RandomNearbyPlayer(uid, component, transform);
 
                 if (component.Chasing is not {Valid: true} chasing || Deleted(chasing))
@@ -69,24 +69,24 @@ namespace Content.Server.Pointing.EntitySystems
 
                 if (component.TurningDelay > 0)
                 {
-                    var difference = _transform.GetWorldPosition(chasing) - _transform.GetWorldPosition(transform);
+                    var difference = Comp<TransformComponent>(chasing).WorldPosition - transform.WorldPosition;
                     var angle = difference.ToAngle();
                     var adjusted = angle.Degrees + 90;
                     var newAngle = Angle.FromDegrees(adjusted);
 
-                    _transform.SetWorldRotation(transform, newAngle);
+                    transform.WorldRotation = newAngle;
 
                     UpdateAppearance(uid, component, transform);
                     continue;
                 }
 
-                _transform.SetWorldRotation(transform, _transform.GetWorldRotation(transform) + Angle.FromDegrees(20));
+                transform.WorldRotation += Angle.FromDegrees(20);
 
                 UpdateAppearance(uid, component, transform);
 
-                var toChased = _transform.GetWorldPosition(chasing) - _transform.GetWorldPosition(transform);
+                var toChased = Comp<TransformComponent>(chasing).WorldPosition - transform.WorldPosition;
 
-                _transform.SetWorldPosition(transform, _transform.GetWorldPosition(transform) + toChased * frameTime * component.ChasingSpeed);
+                transform.WorldPosition += toChased * frameTime * component.ChasingSpeed;
 
                 component.ChasingTime -= frameTime;
 

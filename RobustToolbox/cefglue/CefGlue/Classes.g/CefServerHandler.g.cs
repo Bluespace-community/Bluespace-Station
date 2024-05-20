@@ -19,47 +19,9 @@ namespace Xilium.CefGlue
         
         protected object SyncRoot { get { return this; } }
         
-        private cef_server_handler_t.add_ref_delegate _ds0;
-        private cef_server_handler_t.release_delegate _ds1;
-        private cef_server_handler_t.has_one_ref_delegate _ds2;
-        private cef_server_handler_t.has_at_least_one_ref_delegate _ds3;
-        private cef_server_handler_t.on_server_created_delegate _ds4;
-        private cef_server_handler_t.on_server_destroyed_delegate _ds5;
-        private cef_server_handler_t.on_client_connected_delegate _ds6;
-        private cef_server_handler_t.on_client_disconnected_delegate _ds7;
-        private cef_server_handler_t.on_http_request_delegate _ds8;
-        private cef_server_handler_t.on_web_socket_request_delegate _ds9;
-        private cef_server_handler_t.on_web_socket_connected_delegate _dsa;
-        private cef_server_handler_t.on_web_socket_message_delegate _dsb;
-        
         protected CefServerHandler()
         {
-            _self = cef_server_handler_t.Alloc();
-        
-            _ds0 = new cef_server_handler_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_server_handler_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_server_handler_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_server_handler_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
-            _ds4 = new cef_server_handler_t.on_server_created_delegate(on_server_created);
-            _self->_on_server_created = Marshal.GetFunctionPointerForDelegate(_ds4);
-            _ds5 = new cef_server_handler_t.on_server_destroyed_delegate(on_server_destroyed);
-            _self->_on_server_destroyed = Marshal.GetFunctionPointerForDelegate(_ds5);
-            _ds6 = new cef_server_handler_t.on_client_connected_delegate(on_client_connected);
-            _self->_on_client_connected = Marshal.GetFunctionPointerForDelegate(_ds6);
-            _ds7 = new cef_server_handler_t.on_client_disconnected_delegate(on_client_disconnected);
-            _self->_on_client_disconnected = Marshal.GetFunctionPointerForDelegate(_ds7);
-            _ds8 = new cef_server_handler_t.on_http_request_delegate(on_http_request);
-            _self->_on_http_request = Marshal.GetFunctionPointerForDelegate(_ds8);
-            _ds9 = new cef_server_handler_t.on_web_socket_request_delegate(on_web_socket_request);
-            _self->_on_web_socket_request = Marshal.GetFunctionPointerForDelegate(_ds9);
-            _dsa = new cef_server_handler_t.on_web_socket_connected_delegate(on_web_socket_connected);
-            _self->_on_web_socket_connected = Marshal.GetFunctionPointerForDelegate(_dsa);
-            _dsb = new cef_server_handler_t.on_web_socket_message_delegate(on_web_socket_message);
-            _self->_on_web_socket_message = Marshal.GetFunctionPointerForDelegate(_dsb);
+            _self = cef_server_handler_t.Alloc(this);
         }
         
         ~CefServerHandler()
@@ -76,7 +38,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_server_handler_t* self)
+        internal void add_ref(cef_server_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -88,7 +50,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_server_handler_t* self)
+        internal int release(cef_server_handler_t* self)
         {
             lock (SyncRoot)
             {
@@ -102,12 +64,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_server_handler_t* self)
+        internal int has_one_ref(cef_server_handler_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_server_handler_t* self)
+        internal int has_at_least_one_ref(cef_server_handler_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

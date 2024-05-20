@@ -2,6 +2,7 @@
 using Content.Client.Actions.UI;
 using Content.Client.Cooldown;
 using Content.Shared.Alert;
+using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Timing;
@@ -11,10 +12,6 @@ namespace Content.Client.UserInterface.Systems.Alerts.Controls
 {
     public sealed class AlertControl : BaseButton
     {
-        // shorter than default tooltip delay so user can more easily
-        // see what alerts they have
-        private const float CustomTooltipDelay = 0.5f;
-
         public AlertPrototype Alert { get; }
 
         /// <summary>
@@ -37,8 +34,11 @@ namespace Content.Client.UserInterface.Systems.Alerts.Controls
 
         private short? _severity;
         private readonly IGameTiming _gameTiming;
-        private readonly AnimatedTextureRect _icon;
+        private readonly IEntityManager _entityManager;
+        private readonly SpriteView _icon;
         private readonly CooldownGraphic _cooldownGraphic;
+
+        private EntityUid _spriteViewEntity;
 
         /// <summary>
         /// Creates an alert control reflecting the indicated alert + state
@@ -48,20 +48,30 @@ namespace Content.Client.UserInterface.Systems.Alerts.Controls
         public AlertControl(AlertPrototype alert, short? severity)
         {
             _gameTiming = IoCManager.Resolve<IGameTiming>();
-            TooltipDelay = CustomTooltipDelay;
+            _entityManager = IoCManager.Resolve<IEntityManager>();
             TooltipSupplier = SupplyTooltip;
             Alert = alert;
             _severity = severity;
-            var specifier = alert.GetIcon(_severity);
-            _icon = new AnimatedTextureRect
-            {
-                DisplayRect = {TextureScale = new Vector2(2, 2)}
-            };
 
-            _icon.SetFromSpriteSpecifier(specifier);
+            _spriteViewEntity = _entityManager.Spawn(Alert.AlertViewEntity);
+            if (_entityManager.TryGetComponent<SpriteComponent>(_spriteViewEntity, out var sprite))
+            {
+                var icon = Alert.GetIcon(_severity);
+                if (sprite.LayerMapTryGet(AlertVisualLayers.Base, out var layer))
+                    sprite.LayerSetSprite(layer, icon);
+            }
+
+            _icon = new SpriteView
+            {
+                Scale = new Vector2(2, 2)
+            };
+            _icon.SetEntity(_spriteViewEntity);
 
             Children.Add(_icon);
-            _cooldownGraphic = new CooldownGraphic();
+            _cooldownGraphic = new CooldownGraphic
+            {
+                MaxSize = new Vector2(64, 64)
+            };
             Children.Add(_cooldownGraphic);
         }
 
@@ -77,16 +87,22 @@ namespace Content.Client.UserInterface.Systems.Alerts.Controls
         /// </summary>
         public void SetSeverity(short? severity)
         {
-            if (_severity != severity)
-            {
-                _severity = severity;
-                _icon.SetFromSpriteSpecifier(Alert.GetIcon(_severity));
-            }
+            if (_severity == severity)
+                return;
+            _severity = severity;
+
+            if (!_entityManager.TryGetComponent<SpriteComponent>(_spriteViewEntity, out var sprite))
+                return;
+            var icon = Alert.GetIcon(_severity);
+            if (sprite.LayerMapTryGet(AlertVisualLayers.Base, out var layer))
+                sprite.LayerSetSprite(layer, icon);
         }
 
         protected override void FrameUpdate(FrameEventArgs args)
         {
             base.FrameUpdate(args);
+            UserInterfaceManager.GetUIController<AlertsUIController>().UpdateAlertSpriteEntity(_spriteViewEntity, Alert);
+
             if (!Cooldown.HasValue)
             {
                 _cooldownGraphic.Visible = false;
@@ -96,5 +112,18 @@ namespace Content.Client.UserInterface.Systems.Alerts.Controls
 
             _cooldownGraphic.FromTime(Cooldown.Value.Start, Cooldown.Value.End);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (!_entityManager.Deleted(_spriteViewEntity))
+                _entityManager.QueueDeleteEntity(_spriteViewEntity);
+        }
+    }
+
+    public enum AlertVisualLayers : byte
+    {
+        Base
     }
 }

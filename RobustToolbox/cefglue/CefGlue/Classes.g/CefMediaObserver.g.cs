@@ -19,35 +19,9 @@ namespace Xilium.CefGlue
         
         protected object SyncRoot { get { return this; } }
         
-        private cef_media_observer_t.add_ref_delegate _ds0;
-        private cef_media_observer_t.release_delegate _ds1;
-        private cef_media_observer_t.has_one_ref_delegate _ds2;
-        private cef_media_observer_t.has_at_least_one_ref_delegate _ds3;
-        private cef_media_observer_t.on_sinks_delegate _ds4;
-        private cef_media_observer_t.on_routes_delegate _ds5;
-        private cef_media_observer_t.on_route_state_changed_delegate _ds6;
-        private cef_media_observer_t.on_route_message_received_delegate _ds7;
-        
         protected CefMediaObserver()
         {
-            _self = cef_media_observer_t.Alloc();
-        
-            _ds0 = new cef_media_observer_t.add_ref_delegate(add_ref);
-            _self->_base._add_ref = Marshal.GetFunctionPointerForDelegate(_ds0);
-            _ds1 = new cef_media_observer_t.release_delegate(release);
-            _self->_base._release = Marshal.GetFunctionPointerForDelegate(_ds1);
-            _ds2 = new cef_media_observer_t.has_one_ref_delegate(has_one_ref);
-            _self->_base._has_one_ref = Marshal.GetFunctionPointerForDelegate(_ds2);
-            _ds3 = new cef_media_observer_t.has_at_least_one_ref_delegate(has_at_least_one_ref);
-            _self->_base._has_at_least_one_ref = Marshal.GetFunctionPointerForDelegate(_ds3);
-            _ds4 = new cef_media_observer_t.on_sinks_delegate(on_sinks);
-            _self->_on_sinks = Marshal.GetFunctionPointerForDelegate(_ds4);
-            _ds5 = new cef_media_observer_t.on_routes_delegate(on_routes);
-            _self->_on_routes = Marshal.GetFunctionPointerForDelegate(_ds5);
-            _ds6 = new cef_media_observer_t.on_route_state_changed_delegate(on_route_state_changed);
-            _self->_on_route_state_changed = Marshal.GetFunctionPointerForDelegate(_ds6);
-            _ds7 = new cef_media_observer_t.on_route_message_received_delegate(on_route_message_received);
-            _self->_on_route_message_received = Marshal.GetFunctionPointerForDelegate(_ds7);
+            _self = cef_media_observer_t.Alloc(this);
         }
         
         ~CefMediaObserver()
@@ -64,7 +38,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private void add_ref(cef_media_observer_t* self)
+        internal void add_ref(cef_media_observer_t* self)
         {
             lock (SyncRoot)
             {
@@ -76,7 +50,7 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int release(cef_media_observer_t* self)
+        internal int release(cef_media_observer_t* self)
         {
             lock (SyncRoot)
             {
@@ -90,12 +64,12 @@ namespace Xilium.CefGlue
             }
         }
         
-        private int has_one_ref(cef_media_observer_t* self)
+        internal int has_one_ref(cef_media_observer_t* self)
         {
             lock (SyncRoot) { return _refct == 1 ? 1 : 0; }
         }
         
-        private int has_at_least_one_ref(cef_media_observer_t* self)
+        internal int has_at_least_one_ref(cef_media_observer_t* self)
         {
             lock (SyncRoot) { return _refct != 0 ? 1 : 0; }
         }

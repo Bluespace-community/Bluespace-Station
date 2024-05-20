@@ -7,12 +7,12 @@
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Implement this interface to handle events related to dragging. The methods of
-    /// this class will be called on the UI thread.
+    /// Implement this interface to handle events related to dragging. The methods
+    /// of this class will be called on the UI thread.
     /// </summary>
     public abstract unsafe partial class CefDragHandler
     {
-        private int on_drag_enter(cef_drag_handler_t* self, cef_browser_t* browser, cef_drag_data_t* dragData, CefDragOperationsMask mask)
+        internal int on_drag_enter(cef_drag_handler_t* self, cef_browser_t* browser, cef_drag_data_t* dragData, CefDragOperationsMask mask)
         {
             CheckSelf(self);
 
@@ -34,7 +34,7 @@
 
         private static readonly CefDraggableRegion[] EmptyDraggableRegion = new CefDraggableRegion[0];
 
-        private void on_draggable_regions_changed(cef_drag_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, UIntPtr regionsCount, cef_draggable_region_t* regions)
+        internal void on_draggable_regions_changed(cef_drag_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, UIntPtr regionsCount, cef_draggable_region_t* regions)
         {
             CheckSelf(self);
 

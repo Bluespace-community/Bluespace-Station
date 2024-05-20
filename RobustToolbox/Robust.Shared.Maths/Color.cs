@@ -24,6 +24,7 @@
 //
 
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -403,7 +404,7 @@ namespace Robust.Shared.Maths
         /// </param>
         public static Color FromHsl(Vector4 hsl)
         {
-            var hue = hsl.X * 360.0f;
+            var hue = (hsl.X - MathF.Truncate(hsl.X)) * 360.0f;
             var saturation = hsl.Y;
             var lightness = hsl.Z;
 
@@ -514,7 +515,7 @@ namespace Robust.Shared.Maths
         /// </param>
         public static Color FromHsv(Vector4 hsv)
         {
-            var hue = hsv.X * 360.0f;
+            var hue = (hsv.X - MathF.Truncate(hsv.X)) * 360.0f;
             var saturation = hsv.Y;
             var value = hsv.Z;
 
@@ -591,7 +592,11 @@ namespace Robust.Shared.Maths
             if (c != 0)
             {
                 if (max == rgb.R)
+                {
                     h = (rgb.G - rgb.B) / c % 6.0f;
+                    if (h < 0f)
+                        h += 6.0f;
+                }
                 else if (max == rgb.G)
                     h = (rgb.B - rgb.R) / c + 2.0f;
                 else if (max == rgb.B)
@@ -773,7 +778,11 @@ namespace Robust.Shared.Maths
 
             var h = 0.0f;
             if (max == rgb.R)
+            {
                 h = (rgb.G - rgb.B) / c % 6.0f;
+                if (h < 0f)
+                    h += 6.0f;
+            }
             else if (max == rgb.G)
                 h = (rgb.B - rgb.R) / c + 2.0f;
             else if (max == rgb.B)
@@ -1777,7 +1786,7 @@ namespace Robust.Shared.Maths
         /// </summary>
         public static Color YellowGreen => new(154, 205, 50, 255);
 
-        private static readonly Dictionary<string, Color> DefaultColors = new()
+        private static readonly FrozenDictionary<string, Color> DefaultColors = new Dictionary<string, Color>()
         {
             ["transparent"] = Transparent,
             ["aliceblue"] = AliceBlue,
@@ -1924,12 +1933,12 @@ namespace Robust.Shared.Maths
             ["whitesmoke"] = WhiteSmoke,
             ["yellow"] = Yellow,
             ["yellowgreen"] = YellowGreen,
-        };
+        }.ToFrozenDictionary();
 
         #endregion
 
-        private static readonly Dictionary<Color, string> DefaultColorsInverted =
-            DefaultColors.ToLookup(pair => pair.Value).ToDictionary(i => i.Key, i => i.First().Key);
+        private static readonly FrozenDictionary<Color, string> DefaultColorsInverted =
+            DefaultColors.ToLookup(pair => pair.Value).ToFrozenDictionary(i => i.Key, i => i.First().Key);
 
         public readonly string? Name()
         {

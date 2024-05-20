@@ -12,7 +12,7 @@
     /// </summary>
     public abstract unsafe partial class CefDisplayHandler
     {
-        private void on_address_change(cef_display_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* url)
+        internal void on_address_change(cef_display_handler_t* self, cef_browser_t* browser, cef_frame_t* frame, cef_string_t* url)
         {
             CheckSelf(self);
 
@@ -31,7 +31,7 @@
         }
 
 
-        private void on_title_change(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* title)
+        internal void on_title_change(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* title)
         {
             CheckSelf(self);
 
@@ -49,7 +49,7 @@
         }
 
 
-        private void on_favicon_urlchange(cef_display_handler_t* self, cef_browser_t* browser, cef_string_list* icon_urls)
+        internal void on_favicon_urlchange(cef_display_handler_t* self, cef_browser_t* browser, cef_string_list* icon_urls)
         {
             CheckSelf(self);
 
@@ -67,7 +67,7 @@
         }
 
 
-        private void on_fullscreen_mode_change(cef_display_handler_t* self, cef_browser_t* browser, int fullscreen)
+        internal void on_fullscreen_mode_change(cef_display_handler_t* self, cef_browser_t* browser, int fullscreen)
         {
             CheckSelf(self);
 
@@ -79,13 +79,17 @@
         /// Called when web content in the page has toggled fullscreen mode. If
         /// |fullscreen| is true the content will automatically be sized to fill the
         /// browser content area. If |fullscreen| is false the content will
-        /// automatically return to its original size and position. The client is
-        /// responsible for resizing the browser if desired.
+        /// automatically return to its original size and position. With the Alloy
+        /// runtime the client is responsible for triggering the fullscreen transition
+        /// (for example, by calling CefWindow::SetFullscreen when using Views). With
+        /// the Chrome runtime the fullscreen transition will be triggered
+        /// automatically. The CefWindowDelegate::OnWindowFullscreenTransition method
+        /// will be called during the fullscreen transition for notification purposes.
         /// </summary>
         protected virtual void OnFullscreenModeChange(CefBrowser browser, bool fullscreen) { }
 
 
-        private int on_tooltip(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* text)
+        internal int on_tooltip(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* text)
         {
             CheckSelf(self);
 
@@ -109,7 +113,7 @@
         }
 
 
-        private void on_status_message(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* value)
+        internal void on_status_message(cef_display_handler_t* self, cef_browser_t* browser, cef_string_t* value)
         {
             CheckSelf(self);
 
@@ -128,7 +132,7 @@
         }
 
 
-        private int on_console_message(cef_display_handler_t* self, cef_browser_t* browser, CefLogSeverity level, cef_string_t* message, cef_string_t* source, int line)
+        internal int on_console_message(cef_display_handler_t* self, cef_browser_t* browser, CefLogSeverity level, cef_string_t* message, cef_string_t* source, int line)
         {
             CheckSelf(self);
 
@@ -149,7 +153,7 @@
         }
 
 
-        private int on_auto_resize(cef_display_handler_t* self, cef_browser_t* browser, cef_size_t* new_size)
+        internal int on_auto_resize(cef_display_handler_t* self, cef_browser_t* browser, cef_size_t* new_size)
         {
             CheckSelf(self);
 
@@ -167,10 +171,10 @@
         }
 
         /// <summary>
-        /// Called when auto-resize is enabled via CefBrowserHost::SetAutoResizeEnabled
-        /// and the contents have auto-resized. |new_size| will be the desired size in
-        /// view coordinates. Return true if the resize was handled or false for
-        /// default handling.
+        /// Called when auto-resize is enabled via
+        /// CefBrowserHost::SetAutoResizeEnabled and the contents have auto-resized.
+        /// |new_size| will be the desired size in view coordinates. Return true if
+        /// the resize was handled or false for default handling.
         /// </summary>
         protected virtual bool OnAutoResize(CefBrowser browser, ref CefSize newSize)
         {
@@ -178,7 +182,7 @@
         }
 
 
-        private void on_loading_progress_change(cef_display_handler_t* self, cef_browser_t* browser, double progress)
+        internal void on_loading_progress_change(cef_display_handler_t* self, cef_browser_t* browser, double progress)
         {
             CheckSelf(self);
 
@@ -193,7 +197,7 @@
         protected virtual void OnLoadingProgressChange(CefBrowser browser, double progress) { }
 
 
-        private int on_cursor_change(cef_display_handler_t* self, cef_browser_t* browser, IntPtr cursor, CefCursorType type, cef_cursor_info_t* custom_cursor_info)
+        internal int on_cursor_change(cef_display_handler_t* self, cef_browser_t* browser, IntPtr cursor, CefCursorType type, cef_cursor_info_t* custom_cursor_info)
         {
             CheckSelf(self);
 
@@ -209,9 +213,29 @@
         /// <summary>
         /// Called when the browser's cursor has changed. If |type| is CT_CUSTOM then
         /// |custom_cursor_info| will be populated with the custom cursor information.
-        /// Return true if the cursor change was handled or false for default handling.
+        /// Return true if the cursor change was handled or false for default
+        /// handling.
         /// </summary>
         protected virtual bool OnCursorChange(CefBrowser browser, IntPtr cursorHandle, CefCursorType type, CefCursorInfo customCursorInfo)
             => false;
+
+
+        internal void on_media_access_change(cef_display_handler_t* self, cef_browser_t* browser, int has_video_access, int has_audio_access)
+        {
+            CheckSelf(self);
+
+            var mBrowser = CefBrowser.FromNative(browser);
+
+            OnMediaAccessChange(mBrowser,
+                hasVideoAccess: has_video_access != 0,
+                hasAudioAccess: has_audio_access != 0);
+        }
+
+        /// <summary>
+        /// Called when the browser's access to an audio and/or video source has
+        /// changed.
+        /// </summary>
+        protected virtual void OnMediaAccessChange(CefBrowser browser, bool hasVideoAccess, bool hasAudioAccess)
+        { }
     }
 }

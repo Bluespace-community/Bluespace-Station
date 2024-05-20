@@ -8,7 +8,6 @@ using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
-using Robust.Shared.Graphics;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.IoC;
@@ -22,6 +21,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 using Robust.Shared.Log;
 using Direction = Robust.Shared.Maths.Direction;
+using Robust.Shared.Map.Components;
 
 namespace Robust.Client.Placement
 {
@@ -80,6 +80,10 @@ namespace Robust.Client.Placement
             private set
             {
                 _isActive = value;
+
+                if (CurrentPermission?.UseEditorContext is false)
+                    return;
+
                 SwitchEditorContext(value);
             }
         }
@@ -287,23 +291,17 @@ namespace Robust.Client.Placement
                     }, outsidePrediction: true))
                 .Register<PlacementManager>();
 
-            var localPlayer = PlayerManager.LocalPlayer;
-            localPlayer!.EntityAttached += OnEntityAttached;
+            PlayerManager.LocalPlayerDetached += OnDetached;
         }
 
         private void TearDownInput()
         {
             CommandBinds.Unregister<PlacementManager>();
-
-            if (PlayerManager.LocalPlayer != null)
-            {
-                PlayerManager.LocalPlayer.EntityAttached -= OnEntityAttached;
-            }
+            PlayerManager.LocalPlayerDetached -= OnDetached;
         }
 
-        private void OnEntityAttached(EntityAttachedEventArgs eventArgs)
+        private void OnDetached(EntityUid obj)
         {
-            // player attached to a new entity, basically disable the editor
             Clear();
         }
 
@@ -339,7 +337,7 @@ namespace Robust.Client.Placement
 
         private void HandleTileChanged(ref TileChangedEvent args)
         {
-            var coords = MapManager.GetGrid(args.NewTile.GridUid).GridTileToLocal(args.NewTile.GridIndices);
+            var coords = EntityManager.GetComponent<MapGridComponent>(args.NewTile.GridUid).GridTileToLocal(args.NewTile.GridIndices);
             _pendingTileChanges.RemoveAll(c => c.Item1 == coords);
         }
 
@@ -502,7 +500,7 @@ namespace Robust.Client.Placement
         {
             // Try to get current map.
             var map = MapId.Nullspace;
-            if (EntityManager.TryGetComponent(PlayerManager.LocalPlayer?.ControlledEntity, out TransformComponent? xform))
+            if (EntityManager.TryGetComponent(PlayerManager.LocalEntity, out TransformComponent? xform))
             {
                 map = xform.MapID;
             }
@@ -519,7 +517,7 @@ namespace Robust.Client.Placement
 
         private bool CurrentEraserMouseCoordinates(out EntityCoordinates coordinates)
         {
-            var ent = PlayerManager.LocalPlayer?.ControlledEntity ?? EntityUid.Invalid;
+            var ent = PlayerManager.LocalEntity ?? EntityUid.Invalid;
             if (ent == EntityUid.Invalid)
             {
                 coordinates = new EntityCoordinates();
@@ -647,7 +645,7 @@ namespace Robust.Client.Placement
 
             if (CurrentPermission is not {Range: > 0} ||
                 !CurrentMode.RangeRequired ||
-                PlayerManager.LocalPlayer?.ControlledEntity is not {Valid: true} controlled)
+                PlayerManager.LocalEntity is not {Valid: true} controlled)
                 return;
 
             var worldPos = EntityManager.GetComponent<TransformComponent>(controlled).WorldPosition;
@@ -760,7 +758,7 @@ namespace Robust.Client.Placement
                 // If we have actually placed something on a valid grid...
                 if (gridIdOpt is EntityUid gridId && gridId.IsValid())
                 {
-                    var grid = MapManager.GetGrid(gridId);
+                    var grid = EntityManager.GetComponent<MapGridComponent>(gridId);
 
                     // no point changing the tile to the same thing.
                     if (grid.GetTileRef(coordinates).Tile.TypeId == CurrentPermission.TileType)

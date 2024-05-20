@@ -175,4 +175,14 @@ classdef = {
     'CefFrameHandler': { 'role': ROLE_HANDLER },
     # 101
     'CefCommandHandler': { 'role': ROLE_HANDLER },
+    # 104
+    'CefRunQuickMenuCallback': { 'role': ROLE_PROXY },
+    'CefMediaAccessCallback': { 'role': ROLE_PROXY },
+    'CefPermissionPromptCallback': { 'role': ROLE_PROXY },
+    'CefPermissionHandler': { 'role': ROLE_HANDLER },
+    'CefSharedMemoryRegion': { 'role': ROLE_PROXY },
+    'CefSharedProcessMessageBuilder': { 'role': ROLE_PROXY },
+    # 108
+    'CefPreferenceRegistrar': { 'role': ROLE_PROXY },
+    'CefPreferenceManager': { 'role': ROLE_PROXY, 'abstract': True },
     }

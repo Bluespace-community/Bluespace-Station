@@ -3,7 +3,7 @@
 namespace Content.Shared.Atmos.Piping.Binary.Components
 {
     /// <summary>
-    /// Key representing which <see cref="BoundUserInterface"/> is currently open.
+    /// Key representing which <see cref="PlayerBoundUserInterface"/> is currently open.
     /// Useful when there are multiple UI for an object. Here it's future-proofing only.
     /// </summary>
     [Serializable, NetSerializable]
@@ -21,8 +21,7 @@ namespace Content.Shared.Atmos.Piping.Binary.Components
     public enum GasCanisterVisuals
     {
         PressureState,
-        TankInserted,
-        Locked
+        TankInserted
     }
 
     #endregion

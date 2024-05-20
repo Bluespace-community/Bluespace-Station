@@ -5,6 +5,8 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/freezer.rsi
+  - type: Wires
+    layoutId: AirlockService
 
 - type: entity
   parent: Airlock
@@ -13,16 +15,18 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/engineering.rsi
+  - type: PaintableAirlock
+    department: Engineering
+  - type: Wires
+    layoutId: AirlockEngineering
 
 - type: entity
-  parent: Airlock
+  parent: AirlockEngineering
   id: AirlockAtmospherics
   suffix: Atmospherics
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/atmospherics.rsi
-  - type: Construction
-    node: airlockMedSecurity
 
 - type: entity
   parent: Airlock
@@ -31,6 +35,10 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/cargo.rsi
+  - type: PaintableAirlock
+    department: Cargo
+  - type: Wires
+    layoutId: AirlockCargo
 
 - type: entity
   parent: Airlock
@@ -39,9 +47,13 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/medical.rsi
+  - type: PaintableAirlock
+    department: Medical
+  - type: Wires
+    layoutId: AirlockMedical
 
 - type: entity
-  parent: Airlock
+  parent: AirlockMedical
   id: AirlockVirology
   suffix: Virology
   components:
@@ -49,12 +61,9 @@
     sprite: Structures/Doors/Airlocks/Standard/virology.rsi
 
 - type: entity
-  parent: Airlock
+  parent: AirlockMedical
   id: AirlockChemistry
   suffix: Chemistry
-  components:
-  - type: Sprite
-    sprite: Structures/Doors/Airlocks/Standard/medical.rsi
 
 - type: entity
   parent: Airlock
@@ -63,6 +72,10 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/science.rsi
+  - type: PaintableAirlock
+    department: Science
+  - type: Wires
+    layoutId: AirlockScience
 
 - type: entity
   parent: Airlock
@@ -71,8 +84,12 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/command.rsi
-  - type: Construction
-    node: airlockMaxSecurity
+  - type: WiresPanelSecurity
+    securityLevel: medSecurity
+  - type: PaintableAirlock
+    department: Command
+  - type: Wires
+    layoutId: AirlockCommand
 
 - type: entity
   parent: Airlock
@@ -81,58 +98,62 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/security.rsi
-  - type: Construction
-    node: airlockMedSecurity
+  - type: PaintableAirlock
+    department: Security
+  - type: Wires
+    layoutId: AirlockSecurity
 
 - type: entity
   parent: Airlock
   id: AirlockMaint
-  name: maintenance hatch
+  name: maintenance access
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Standard/maint.rsi
 
-# Glass
+- type: entity
+  parent: AirlockSecurity # if you get syndie door somehow it counts as sec
+  id: AirlockSyndicate
+  suffix: Syndicate
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Standard/syndicate.rsi
 
 - type: entity
-  id: AirlockGlass
-  parent: Airlock
-  name: glass airlock
+  parent: AirlockCargo
+  id: AirlockMining
+  suffix: Mining(Salvage)
   components:
-  - type: MeleeSound
-    soundGroups:
-      Brute:
-        path:
-          "/Audio/Effects/glass_hit.ogg"
-  - type: Door
-    occludes: false
-  - type: Occluder
-    enabled: false
   - type: Sprite
-    sprite: Structures/Doors/Airlocks/Glass/glass.rsi
-  - type: AnimationPlayer
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeAabb
-          bounds: "-0.49,-0.49,0.49,0.49" # don't want this colliding with walls or they won't close
-        density: 100
-        mask:
-        - FullTileMask
-        layer:     #removed opaque from the layer, allowing lasers to pass through glass airlocks
-        - GlassAirlockLayer
-  - type: LayerChangeOnWeld
-    unWeldedLayer: GlassAirlockLayer
-    weldedLayer: GlassLayer
-  - type: Construction
-    graph: Airlock
-    node: glassAirlock
-  - type: PaintableAirlock
-    group: Glass
-  - type: RadiationBlocker
-    resistance: 2
+    sprite: Structures/Doors/Airlocks/Standard/mining.rsi
+  - type: Wires
+    layoutId: AirlockCargo
 
+- type: entity
+  parent: AirlockCommand # if you get centcom door somehow it counts as command, also inherit panel
+  id: AirlockCentralCommand
+  suffix: Central Command
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Standard/centcomm.rsi
+
+- type: entity
+  parent: Airlock
+  id: AirlockHatch
+  name: airtight hatch
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Standard/hatch.rsi
+
+- type: entity
+  parent: Airlock
+  id: AirlockHatchMaintenance
+  name: maintenance hatch
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Standard/hatch_maint.rsi
+
+# Glass
 - type: entity
   parent: AirlockGlass
   id: AirlockEngineeringGlass
@@ -141,7 +162,9 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/engineering.rsi
   - type: PaintableAirlock
-    group: Glass
+    department: Engineering
+  - type: Wires
+    layoutId: AirlockEngineering
 
 - type: entity
   parent: AirlockGlass
@@ -150,20 +173,14 @@
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/maint.rsi
-  - type: PaintableAirlock
-    group: Glass
 
 - type: entity
-  parent: AirlockGlass
+  parent: AirlockEngineeringGlass
   id: AirlockAtmosphericsGlass
   suffix: Atmospherics
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/atmospherics.rsi
-  - type: PaintableAirlock
-    group: Glass
-  - type: Construction
-    node: glassAirlockMedSecurity
 
 - type: entity
   parent: AirlockGlass
@@ -173,7 +190,9 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/cargo.rsi
   - type: PaintableAirlock
-    group: Glass
+    department: Cargo
+  - type: Wires
+    layoutId: AirlockCargo
 
 - type: entity
   parent: AirlockGlass
@@ -183,17 +202,22 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/medical.rsi
   - type: PaintableAirlock
-    group: Glass
+    department: Medical
+  - type: Wires
+    layoutId: AirlockMedical
 
 - type: entity
-  parent: AirlockGlass
+  parent: AirlockMedicalGlass
+  id: AirlockChemistryGlass
+  suffix: Chemistry
+
+- type: entity
+  parent: AirlockMedicalGlass
   id: AirlockVirologyGlass
   suffix: Virology
   components:
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/virology.rsi
-  - type: PaintableAirlock
-    group: Glass
 
 - type: entity
   parent: AirlockGlass
@@ -203,7 +227,9 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/science.rsi
   - type: PaintableAirlock
-    group: Glass
+    department: Science
+  - type: Wires
+    layoutId: AirlockScience
 
 - type: entity
   parent: AirlockGlass
@@ -213,9 +239,11 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/command.rsi
   - type: PaintableAirlock
-    group: Glass
-  - type: Construction
-    node: glassAirlockMaxSecurity
+    department: Command
+  - type: WiresPanelSecurity
+    securityLevel: medSecurity
+  - type: Wires
+    layoutId: AirlockCommand
 
 - type: entity
   parent: AirlockGlass
@@ -225,6 +253,30 @@
   - type: Sprite
     sprite: Structures/Doors/Airlocks/Glass/security.rsi
   - type: PaintableAirlock
-    group: Glass
-  - type: Construction
-    node: glassAirlockMedSecurity
+    department: Security
+  - type: Wires
+    layoutId: AirlockSecurity
+
+- type: entity
+  parent: AirlockSecurityGlass # see standard
+  id: AirlockSyndicateGlass
+  suffix: Syndicate
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Glass/syndicate.rsi
+
+- type: entity
+  parent: AirlockCargoGlass
+  id: AirlockMiningGlass
+  suffix: Mining(Salvage)
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Glass/mining.rsi
+
+- type: entity
+  parent: AirlockCommandGlass # see standard
+  id: AirlockCentralCommandGlass
+  suffix: Central Command
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Glass/centcomm.rsi

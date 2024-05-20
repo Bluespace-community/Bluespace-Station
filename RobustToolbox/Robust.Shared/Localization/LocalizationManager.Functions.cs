@@ -17,6 +17,8 @@ namespace Robust.Shared.Localization
 {
     internal sealed partial class LocalizationManager
     {
+        private static readonly Regex RegexWordMatch = new Regex(@"\w+");
+
         private void AddBuiltInFunctions(FluentBundle bundle)
         {
             // Grammatical gender / pronouns
@@ -108,7 +110,7 @@ namespace Robust.Shared.Localization
             var a = new LocValueString("a");
             var an = new LocValueString("an");
 
-            var m = Regex.Match(input, @"\w+");
+            var m = RegexWordMatch.Match(input);
             if (m.Success)
             {
                 word = m.Groups[0].Value;
@@ -174,7 +176,7 @@ namespace Robust.Shared.Localization
             {
                 EntityUid entity = (EntityUid)entity0.Value;
 
-                if (_entMan.TryGetComponent<GrammarComponent?>(entity, out var grammar) && grammar.Gender.HasValue)
+                if (_entMan.TryGetComponent(entity, out GrammarComponent? grammar) && grammar.Gender.HasValue)
                 {
                     return new LocValueString(grammar.Gender.Value.ToString().ToLowerInvariant());
                 }
@@ -307,7 +309,7 @@ namespace Robust.Shared.Localization
             {
                 EntityUid entity = (EntityUid)entity0.Value;
 
-                if (_entMan.TryGetComponent<GrammarComponent?>(entity, out var grammar) && grammar.ProperNoun.HasValue)
+                if (_entMan.TryGetComponent(entity, out GrammarComponent? grammar) && grammar.ProperNoun.HasValue)
                 {
                     return new LocValueString(grammar.ProperNoun.Value.ToString().ToLowerInvariant());
                 }

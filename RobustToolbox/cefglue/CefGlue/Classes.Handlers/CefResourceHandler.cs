@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.Runtime.InteropServices;
     using Xilium.CefGlue.Interop;
+    using System.Threading;
     using System.IO;
 
     /// <summary>
@@ -13,40 +14,29 @@
     /// </summary>
     public abstract unsafe partial class CefResourceHandler
     {
-        private volatile bool _keepObject;
+        /// <summary>
+        /// set to 1 for keeping, otherwise 0
+        /// </summary>
+        private int _keepObject;
 
         public void KeepObject()
         {
-            if (!_keepObject)
+            if (Interlocked.CompareExchange(ref _keepObject, 1, 0) == 0)
             {
-                lock (SyncRoot)
-                {
-                    if (!_keepObject)
-                    {
-                        add_ref(_self);
-                        _keepObject = true;
-                    }
-                }
+                add_ref(_self);
             }
         }
 
         public void ReleaseObject()
         {
-            if (_keepObject)
+            if (Interlocked.CompareExchange(ref _keepObject, 0, 1) == 1)
             {
-                lock (SyncRoot)
-                {
-                    if (_keepObject)
-                    {
-                        release(_self);
-                        _keepObject = false;
-                    }
-                }
+                release(_self);
             }
         }
 
 
-        private int open(cef_resource_handler_t* self, cef_request_t* request, int* handle_request, cef_callback_t* callback)
+        internal int open(cef_resource_handler_t* self, cef_request_t* request, int* handle_request, cef_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -73,7 +63,7 @@
         protected abstract bool Open(CefRequest request, out bool handleRequest, CefCallback callback);
 
 
-        private int process_request(cef_resource_handler_t* self, cef_request_t* request, cef_callback_t* callback)
+        internal int process_request(cef_resource_handler_t* self, cef_request_t* request, cef_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -103,7 +93,7 @@
         }
 
 
-        private void get_response_headers(cef_resource_handler_t* self, cef_response_t* response, long* response_length, cef_string_t* redirectUrl)
+        internal void get_response_headers(cef_resource_handler_t* self, cef_response_t* response, long* response_length, cef_string_t* redirectUrl)
         {
             CheckSelf(self);
 
@@ -139,7 +129,7 @@
         protected abstract void GetResponseHeaders(CefResponse response, out long responseLength, out string redirectUrl);
 
 
-        private int skip(cef_resource_handler_t* self, long bytes_to_skip, long* bytes_skipped, cef_resource_skip_callback_t* callback)
+        internal int skip(cef_resource_handler_t* self, long bytes_to_skip, long* bytes_skipped, cef_resource_skip_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -164,36 +154,34 @@
         protected abstract bool Skip(long bytesToSkip, out long bytesSkipped, CefResourceSkipCallback callback);
 
 
-        private int read(cef_resource_handler_t* self, void* data_out, int bytes_to_read, int* bytes_read, cef_resource_read_callback_t* callback)
+        internal int read(cef_resource_handler_t* self, void* data_out, int bytes_to_read, int* bytes_read, cef_resource_read_callback_t* callback)
         {
             CheckSelf(self);
 
             var m_callback = CefResourceReadCallback.FromNative(callback);
 
-            var m_result = Read((IntPtr)data_out, bytes_to_read, out var m_bytesRead, m_callback);
-
+            var m_result = Read(new Span<byte>(data_out, bytes_to_read), out var m_bytesRead, m_callback);
             *bytes_read = m_bytesRead;
-
             return m_result ? 1 : 0;
         }
 
         /// <summary>
         /// Read response data. If data is available immediately copy up to
-        /// |bytes_to_read| bytes into |data_out|, set |bytes_read| to the number of
+        /// |bytes_to_read| bytes into |response|, set |bytes_read| to the number of
         /// bytes copied, and return true. To read the data at a later time keep a
         /// pointer to |data_out|, set |bytes_read| to 0, return true and execute
-        /// |callback| when the data is available (|data_out| will remain valid until
-        /// the callback is executed). To indicate response completion set |bytes_read|
-        /// to 0 and return false. To indicate failure set |bytes_read| to &lt; 0 (e.g. -2
-        /// for ERR_FAILED) and return false. This method will be called in sequence
-        /// but not from a dedicated thread. For backwards compatibility set
-        /// |bytes_read| to -1 and return false and the ReadResponse method will be
-        /// called.
+        /// |callback| when the data is available (|response| will remain valid until
+        /// the callback is executed). To indicate response completion set
+        /// |bytes_read| to 0 and return false. To indicate failure set |bytes_read|
+        /// to &lt; 0 (e.g. -2 for ERR_FAILED) and return false. This method will be
+        /// called in sequence but not from a dedicated thread. For backwards
+        /// compatibility set |bytes_read| to -1 and return false and the ReadResponse
+        /// method will be called.
         /// </summary>
-        protected abstract bool Read(IntPtr dataOut, int bytesToRead, out int bytesRead, CefResourceReadCallback callback);
+        protected abstract bool Read(Span<byte> response, out int bytesRead, CefResourceReadCallback callback);
 
 
-        private int read_response(cef_resource_handler_t* self, void* data_out, int bytes_to_read, int* bytes_read, cef_callback_t* callback)
+        internal int read_response(cef_resource_handler_t* self, void* data_out, int bytes_to_read, int* bytes_read, cef_callback_t* callback)
         {
             CheckSelf(self);
 
@@ -226,7 +214,7 @@
         }
 
 
-        private void cancel(cef_resource_handler_t* self)
+        internal void cancel(cef_resource_handler_t* self)
         {
             CheckSelf(self);
 

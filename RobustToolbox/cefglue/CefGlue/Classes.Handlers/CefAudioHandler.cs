@@ -7,12 +7,11 @@
     using Xilium.CefGlue.Interop;
 
     /// <summary>
-    /// Implement this interface to handle audio events
-    /// All methods will be called on the UI thread
+    /// Implement this interface to handle audio events.
     /// </summary>
     public abstract unsafe partial class CefAudioHandler
     {
-        private int get_audio_parameters(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params)
+        internal int get_audio_parameters(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params)
         {
             CheckSelf(self);
 
@@ -31,7 +30,7 @@
         protected abstract bool GetAudioParameters(CefBrowser browser, CefAudioParameters parameters);
 
 
-        private void on_audio_stream_started(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params, int channels)
+        internal void on_audio_stream_started(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params, int channels)
         {
             CheckSelf(self);
 
@@ -49,7 +48,7 @@
         protected abstract void OnAudioStreamStarted(CefBrowser browser, in CefAudioParameters parameters, int channels);
 
 
-        private void on_audio_stream_packet(cef_audio_handler_t* self, cef_browser_t* browser, float** data, int frames, long pts)
+        internal void on_audio_stream_packet(cef_audio_handler_t* self, cef_browser_t* browser, float** data, int frames, long pts)
         {
             CheckSelf(self);
 
@@ -62,17 +61,15 @@
         /// stream. |data| is an array representing the raw PCM data as a floating
         /// point type, i.e. 4-byte value(s). |frames| is the number of frames in the
         /// PCM packet. |pts| is the presentation timestamp (in milliseconds since the
-        /// Unix Epoch) and represents the time at which the decompressed packet should
-        /// be presented to the user. Based on |frames| and the |channel_layout| value
-        /// passed to OnAudioStreamStarted you can calculate the size of the |data|
-        /// array in bytes.
-        /// 
-        /// |data| is |float**|, readonly!
+        /// Unix Epoch) and represents the time at which the decompressed packet
+        /// should be presented to the user. Based on |frames| and the
+        /// |channel_layout| value passed to OnAudioStreamStarted you can calculate
+        /// the size of the |data| array in bytes.
         /// </summary>
         protected abstract void OnAudioStreamPacket(CefBrowser browser, IntPtr data, int frames, long pts);
 
 
-        private void on_audio_stream_stopped(cef_audio_handler_t* self, cef_browser_t* browser)
+        internal void on_audio_stream_stopped(cef_audio_handler_t* self, cef_browser_t* browser)
         {
             CheckSelf(self);
 
@@ -88,7 +85,7 @@
         protected abstract void OnAudioStreamStopped(CefBrowser browser);
 
 
-        private void on_audio_stream_error(cef_audio_handler_t* self, cef_browser_t* browser, cef_string_t* message)
+        internal void on_audio_stream_error(cef_audio_handler_t* self, cef_browser_t* browser, cef_string_t* message)
         {
             CheckSelf(self);
 

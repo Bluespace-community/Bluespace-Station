@@ -13,84 +13,99 @@ namespace Xilium.CefGlue.Interop
     internal unsafe struct cef_audio_handler_t
     {
         internal cef_base_ref_counted_t _base;
-        internal IntPtr _get_audio_parameters;
-        internal IntPtr _on_audio_stream_started;
-        internal IntPtr _on_audio_stream_packet;
-        internal IntPtr _on_audio_stream_stopped;
-        internal IntPtr _on_audio_stream_error;
+        internal delegate* unmanaged<cef_audio_handler_t*, cef_browser_t*, cef_audio_parameters_t*, int> _get_audio_parameters;
+        internal delegate* unmanaged<cef_audio_handler_t*, cef_browser_t*, cef_audio_parameters_t*, int, void> _on_audio_stream_started;
+        internal delegate* unmanaged<cef_audio_handler_t*, cef_browser_t*, float**, int, long, void> _on_audio_stream_packet;
+        internal delegate* unmanaged<cef_audio_handler_t*, cef_browser_t*, void> _on_audio_stream_stopped;
+        internal delegate* unmanaged<cef_audio_handler_t*, cef_browser_t*, cef_string_t*, void> _on_audio_stream_error;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void add_ref_delegate(cef_audio_handler_t* self);
+        internal GCHandle _obj;
         
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int release_delegate(cef_audio_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_one_ref_delegate(cef_audio_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int has_at_least_one_ref_delegate(cef_audio_handler_t* self);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate int get_audio_parameters_delegate(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_audio_stream_started_delegate(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params, int channels);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_audio_stream_packet_delegate(cef_audio_handler_t* self, cef_browser_t* browser, float** data, int frames, long pts);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_audio_stream_stopped_delegate(cef_audio_handler_t* self, cef_browser_t* browser);
-        
-        [UnmanagedFunctionPointer(libcef.CEF_CALLBACK)]
-        #if !DEBUG
-        [SuppressUnmanagedCodeSecurity]
-        #endif
-        internal delegate void on_audio_stream_error_delegate(cef_audio_handler_t* self, cef_browser_t* browser, cef_string_t* message);
-        
-        private static int _sizeof;
-        
-        static cef_audio_handler_t()
+        [UnmanagedCallersOnly]
+        public static void add_ref(cef_audio_handler_t* self)
         {
-            _sizeof = Marshal.SizeOf(typeof(cef_audio_handler_t));
+            var obj = (CefAudioHandler)self->_obj.Target;
+            obj.add_ref(self);
         }
         
-        internal static cef_audio_handler_t* Alloc()
+        [UnmanagedCallersOnly]
+        public static int release(cef_audio_handler_t* self)
         {
-            var ptr = (cef_audio_handler_t*)Marshal.AllocHGlobal(_sizeof);
-            *ptr = new cef_audio_handler_t();
-            ptr->_base._size = (UIntPtr)_sizeof;
+            var obj = (CefAudioHandler)self->_obj.Target;
+            return obj.release(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_one_ref(cef_audio_handler_t* self)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            return obj.has_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int has_at_least_one_ref(cef_audio_handler_t* self)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            return obj.has_at_least_one_ref(self);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static int get_audio_parameters(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            return obj.get_audio_parameters(self, browser, @params);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_audio_stream_started(cef_audio_handler_t* self, cef_browser_t* browser, cef_audio_parameters_t* @params, int channels)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            obj.on_audio_stream_started(self, browser, @params, channels);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_audio_stream_packet(cef_audio_handler_t* self, cef_browser_t* browser, float** data, int frames, long pts)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            obj.on_audio_stream_packet(self, browser, data, frames, pts);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_audio_stream_stopped(cef_audio_handler_t* self, cef_browser_t* browser)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            obj.on_audio_stream_stopped(self, browser);
+        }
+        
+        [UnmanagedCallersOnly]
+        public static void on_audio_stream_error(cef_audio_handler_t* self, cef_browser_t* browser, cef_string_t* message)
+        {
+            var obj = (CefAudioHandler)self->_obj.Target;
+            obj.on_audio_stream_error(self, browser, message);
+        }
+        
+        internal static cef_audio_handler_t* Alloc(CefAudioHandler obj)
+        {
+            var ptr = (cef_audio_handler_t*)NativeMemory.Alloc((UIntPtr)sizeof(cef_audio_handler_t));
+            *ptr = default(cef_audio_handler_t);
+            ptr->_base._size = (UIntPtr)sizeof(cef_audio_handler_t);
+            ptr->_obj = GCHandle.Alloc(obj);
+            ptr->_base._add_ref = (delegate* unmanaged<cef_base_ref_counted_t*, void>)(delegate* unmanaged<cef_audio_handler_t*, void>)&add_ref;
+            ptr->_base._release = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_audio_handler_t*, int>)&release;
+            ptr->_base._has_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_audio_handler_t*, int>)&has_one_ref;
+            ptr->_base._has_at_least_one_ref = (delegate* unmanaged<cef_base_ref_counted_t*, int>)(delegate* unmanaged<cef_audio_handler_t*, int>)&has_at_least_one_ref;
+            ptr->_get_audio_parameters = &get_audio_parameters;
+            ptr->_on_audio_stream_started = &on_audio_stream_started;
+            ptr->_on_audio_stream_packet = &on_audio_stream_packet;
+            ptr->_on_audio_stream_stopped = &on_audio_stream_stopped;
+            ptr->_on_audio_stream_error = &on_audio_stream_error;
             return ptr;
         }
         
         internal static void Free(cef_audio_handler_t* ptr)
         {
-            Marshal.FreeHGlobal((IntPtr)ptr);
+            ptr->_obj.Free();
+            NativeMemory.Free((void*)ptr);
         }
         
     }

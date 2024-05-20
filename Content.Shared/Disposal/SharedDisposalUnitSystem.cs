@@ -1,14 +1,11 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Body.Components;
 using Content.Shared.Disposal.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.DragDrop;
 using Content.Shared.Emag.Systems;
 using Content.Shared.Item;
-using Content.Shared.Mobs.Components;
-using Content.Shared.Mobs.Systems;
 using Content.Shared.Throwing;
-using JetBrains.Annotations;
 using Robust.Shared.Audio;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
@@ -27,7 +24,6 @@ public abstract class SharedDisposalUnitSystem : EntitySystem
 {
     [Dependency] protected readonly IGameTiming GameTiming = default!;
     [Dependency] protected readonly MetaDataSystem Metadata = default!;
-    [Dependency] private   readonly MobStateSystem _mobState = default!;
     [Dependency] protected readonly SharedJointSystem Joints = default!;
 
     protected static TimeSpan ExitAttemptDelay = TimeSpan.FromSeconds(0.5);
@@ -36,6 +32,8 @@ public abstract class SharedDisposalUnitSystem : EntitySystem
     public const float PressurePerSecond = 0.05f;
 
     public abstract bool HasDisposals([NotNullWhen(true)] EntityUid? uid);
+
+    public abstract bool ResolveDisposals(EntityUid uid, [NotNullWhen(true)] ref SharedDisposalUnitComponent? component);
 
     /// <summary>
     /// Gets the current pressure state of a disposals unit.
@@ -79,8 +77,7 @@ public abstract class SharedDisposalUnitSystem : EntitySystem
         var otherBody = args.OtherEntity;
 
         // Items dropped shouldn't collide but items thrown should
-        if (EntityManager.HasComponent<ItemComponent>(otherBody) &&
-            !EntityManager.HasComponent<ThrownItemComponent>(otherBody))
+        if (HasComp<ItemComponent>(otherBody) && !HasComp<ThrownItemComponent>(otherBody))
         {
             args.Cancelled = true;
             return;
@@ -109,32 +106,26 @@ public abstract class SharedDisposalUnitSystem : EntitySystem
 
     public virtual bool CanInsert(EntityUid uid, SharedDisposalUnitComponent component, EntityUid entity)
     {
-        if (!EntityManager.GetComponent<TransformComponent>(uid).Anchored)
+        if (!Transform(uid).Anchored)
             return false;
 
-        // TODO: Probably just need a disposable tag.
-        if (!EntityManager.TryGetComponent(entity, out ItemComponent? storable) &&
-            !EntityManager.HasComponent<BodyComponent>(entity))
-        {
-            return false;
-        }
-
-        //Check if the entity is a mob and if mobs can be inserted
-        if (TryComp<MobStateComponent>(entity, out var damageState) && !component.MobsCanEnter)
+        var storable = HasComp<ItemComponent>(entity);
+        if (!storable && !HasComp<BodyComponent>(entity))
             return false;
 
-        if (EntityManager.TryGetComponent(entity, out PhysicsComponent? physics) &&
-            (physics.CanCollide || storable != null))
-        {
+        if (component.Blacklist?.IsValid(entity, EntityManager) == true)
+            return false;
+
+        if (component.Whitelist != null && component.Whitelist?.IsValid(entity, EntityManager) != true)
+            return false;
+
+        if (TryComp<PhysicsComponent>(entity, out var physics) && (physics.CanCollide) || storable)
             return true;
-        }
+        else
+            return false;
 
-        return damageState != null && (!component.MobsCanEnter || _mobState.IsDead(entity, damageState));
     }
 
-    /// <summary>
-    /// TODO: Proper prediction
-    /// </summary>
     public abstract void DoInsertDisposalUnit(EntityUid uid, EntityUid toInsert, EntityUid user, SharedDisposalUnitComponent? disposal = null);
 
     [Serializable, NetSerializable]
@@ -147,9 +138,9 @@ public abstract class SharedDisposalUnitSystem : EntitySystem
         public TimeSpan? NextFlush;
         public bool Powered;
         public bool Engaged;
-        public List<EntityUid> RecentlyEjected;
+        public List<NetEntity> RecentlyEjected;
 
-        public DisposalUnitComponentState(SoundSpecifier? flushSound, DisposalsPressureState state, TimeSpan nextPressurized, TimeSpan automaticEngageTime, TimeSpan? nextFlush, bool powered, bool engaged, List<EntityUid> recentlyEjected)
+        public DisposalUnitComponentState(SoundSpecifier? flushSound, DisposalsPressureState state, TimeSpan nextPressurized, TimeSpan automaticEngageTime, TimeSpan? nextFlush, bool powered, bool engaged, List<NetEntity> recentlyEjected)
         {
             FlushSound = flushSound;
             State = state;
