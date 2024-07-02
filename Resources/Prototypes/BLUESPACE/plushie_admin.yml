@@ -32,28 +32,31 @@
   parent: PlushieNuke
   id: Plushiekytukula
   name: kytukula
-  description: Куратор всея ивентового
+  description: Младший
   components:
   - type: Sprite
     state: plushie_nuke
 
 - type: entity
-  parent: PlushieSharkBlue
-  id: Plushiecitade
-  name: citade
-  description: Украл власть.
-  components:
-  - type: Sprite
-    sprite: Objects/Fun/sharkplush.rsi
-    state: blue
-  - type: Item
-    heldPrefix: blue
-
-- type: entity
   parent: ToyMouse
   id: Plushiexzarkenk
   name: xzarkenk
-  description: ...
+  description: Будущий куратор!
+  components:
+  - type: Sprite
+    state: toy_mouse
+  - type: EmitSoundOnUse
+    sound:
+      path: /Audio/Items/Toys/mousesqueek.ogg
+  - type: MeleeWeapon
+    soundHit:
+      path: /Audio/Items/Toys/mousesqueek.ogg
+
+- type: entity
+  parent: ToyMouse
+  id: PlushiextaXx
+  name: xtaXx
+  description: Че
   components:
   - type: Sprite
     state: toy_mouse
