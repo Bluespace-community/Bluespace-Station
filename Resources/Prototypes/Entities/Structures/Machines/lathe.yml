@@ -606,6 +606,8 @@
         - MagazineBoxMagnum
         - MagazineBoxRifle
         - MagazineBoxLightRifle
+        - BaseMagazineBoxAntiMateriel
+        - CartridgeAntiMateriel
     - type: MaterialStorage
       whitelist:
         tags:
